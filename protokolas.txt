@@ -1,0 +1,3 @@
+* JSON kaip transporto protokolas
+* leidziame anonimines formas
+* naudojam MD5SUM
