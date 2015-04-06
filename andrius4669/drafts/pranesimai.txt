@@ -1,0 +1,74 @@
+šis dokumentas nusako protokolą kuris bus naudojamas kliento ir serverio komunikacijai.
+protokolas yra sudarytas iš atskirų JSON ( http://en.wikipedia.org/wiki/JSON http://json.org/ ) formato pranešimų, atskirtų ASCII NUL simboliu (\0).
+serveris į kiekvieną kliento užklausą grąžina tam tikrą atsakymą.
+
+bendras formatas naudojamas pranešimuose yra paremtas JSON-RPC 2.0 ( http://en.wikipedia.org/wiki/JSON-RPC http://www.jsonrpc.org/specification ):
+
+- užklausa:
+{
+    "jsonrpc": "2.0",
+    "method": "užklausos tipas",
+    "params": {
+        /* parametrai, nebūtinas */
+    },
+    "id": 1
+}
+  - jsonrpc - reikalingas JSON-RPC 2.0 protokolui - tipas: string
+  - method  - nusako užklausos tipą - tipas: string
+  - params  - nusako parametrus užklausai, nėra būtinas
+  - id      - nusako užklausos numerį, nėra būtinas, jei nesitikima atsakymo
+
+- jei užklausa sėkmingai ivykdyta:
+{
+    "jsonrpc": "2.0",
+    "result": 123,
+    "id": 1
+}
+  - jsonrpc - būtinas JSON-RPC 2.0 protokolui
+  - result  - užklausos atsakymas, tipas priklauso nuo pačios užklausos
+  - id      - užklausos numeris
+
+- jei ivyko klaida:
+{
+    "jsonrpc": "2.0",
+    "error": {
+        "code": 123,
+        "message": "klaidos pranešimas",
+        "data": {
+            /* papildoma informacija apie klaidą */
+        }
+    },
+    "id": 1
+}
+  - jsonrpc   - būtinas JSON-RPC 2.0
+  - error     - informacija apie klaidą:
+    - code    - klaidos kodas, tipas: integer
+    - message - trumpas klaidos pranešimas, tipas: string
+    - data    - papildoma info apie klaidą, gali ir nebūti, tipas: priklauso nuo klaidos
+    - užklausos numeris
+
+
+
+serverio palaikomos užklausos:
+>method: "connect"
+  - params:
+    - version: "desktop 0.1" "android 0.2" "iphone 0.2" etc... (nebūtinas, bet rekomenduojamas) (tipas: string)
+    - features: objektas, kurio nariai nusako papildomas galimybes (gali ir nebūti)
+      * "md5" - (tipas: integer arba boolean) - jei true arba ne 0, klientas palaiko md5 slaptažodžių kodavimą
+  - atsakymas:
+    - result - objektas:
+      - version  - serverio versija, tipas: string, pvz: "0.1" (nebūtinas, bet rekomenduojamas)
+      - features - objektas, nusakantis serverio palaikomas galimybes (nebūtinas)
+        * "md5"  - (tipas: string) - base64 užkoduotas tekstas skirtas md5 maišos funkcijai slaptažodžiams
+  - galimos klaidos:
+    # kolkas klaidų nėra
+
+>method: "login"
+  - params:
+    - uname:    naudotojo vardas (tipas: string)
+    - pass:     slaptažodis (tipas: string)
+    - passtype: slaptažodžio formatas (tipas: string)
+      * "plain"   - nešifruotas base64 užkoduotas slaptažodis ( http://en.wikipedia.org/wiki/Base64 ). (geriau naudoti md5 jei galimas)
+      * "md5"     - md5 šifruotas base64 užkoduotas slaptažodžio kodas (daugiau informacijos md5.txt faile)
+  - atsakymas   - jei prisijungimas pavyko, serveris pateikia kliento duomenis
+    /* TODO */

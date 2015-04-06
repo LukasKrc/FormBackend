@@ -1,0 +1,5 @@
+serveris klausosi TCP protokolu naudodamas 17303 portą. prisijungęs klientas
+visu pirma turi siūsti "connect" užklausą kuri informuos serverį apie kliento
+palaikomas galimybes (palaikomus šifravimo algoritmus, papildomus protokolus,
+kliento tipą, pan.). toumet serveris grąžina atsakymą, kuris nusako
+serverio palaikomas galimybes.
