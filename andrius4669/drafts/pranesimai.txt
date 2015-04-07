@@ -2,6 +2,10 @@
 protokolas yra sudarytas iš atskirų JSON ( http://en.wikipedia.org/wiki/JSON http://json.org/ ) formato pranešimų, atskirtų ASCII NUL simboliu (\0).
 serveris į kiekvieną kliento užklausą grąžina tam tikrą atsakymą.
 
+
+################################################################
+#                BENDRAS PRANEŠIMŲ FORMATAS                    #
+################################################################
 bendras formatas naudojamas pranešimuose yra paremtas JSON-RPC 2.0 ( http://en.wikipedia.org/wiki/JSON-RPC http://www.jsonrpc.org/specification ):
 
 - užklausa:
@@ -13,22 +17,22 @@ bendras formatas naudojamas pranešimuose yra paremtas JSON-RPC 2.0 ( http://en.
     },
     "id": 1
 }
-  - jsonrpc - reikalingas JSON-RPC 2.0 protokolui - tipas: string
-  - method  - nusako užklausos tipą - tipas: string
-  - params  - nusako parametrus užklausai, nėra būtinas
-  - id      - nusako užklausos numerį, nėra būtinas, jei nesitikima atsakymo
+  - jsonrpc - reikalingas JSON-RPC 2.0 protokolui, tipas: string
+  - method  - nusako užklausos tipą, tipas: string
+  * params  - nusako parametrus užklausai, nėra būtinas, tipas: priklauso nuo užklausos
+  * id      - nusako užklausos numerį, nėra būtinas, jei nesitikima atsakymo, tipas: integer, turėtų būti > 0
 
-- jei užklausa sėkmingai ivykdyta:
+> jei užklausa sėkmingai ivykdyta:
 {
     "jsonrpc": "2.0",
     "result": 123,
     "id": 1
 }
-  - jsonrpc - būtinas JSON-RPC 2.0 protokolui
+  - jsonrpc - būtinas JSON-RPC 2.0 protokolui, tipas: string
   - result  - užklausos atsakymas, tipas priklauso nuo pačios užklausos
-  - id      - užklausos numeris
+  - id      - užklausos numeris, tipas: integer
 
-- jei ivyko klaida:
+> jei ivyko klaida:
 {
     "jsonrpc": "2.0",
     "error": {
@@ -40,35 +44,168 @@ bendras formatas naudojamas pranešimuose yra paremtas JSON-RPC 2.0 ( http://en.
     },
     "id": 1
 }
-  - jsonrpc   - būtinas JSON-RPC 2.0
-  - error     - informacija apie klaidą:
+  - jsonrpc   - būtinas JSON-RPC 2.0, tipas: string
+  - error     - tipas: object, informacija apie klaidą:
     - code    - klaidos kodas, tipas: integer
     - message - trumpas klaidos pranešimas, tipas: string
-    - data    - papildoma info apie klaidą, gali ir nebūti, tipas: priklauso nuo klaidos
-    - užklausos numeris
+    * data    - papildoma info apie klaidą, gali ir nebūti, tipas: priklauso nuo klaidos
+  - id      - užklausos numeris, tipas: integer  arba null (jei ivyko klaida bandant nuskaityti id)
 
+################################################################
+#                    GALIMI KLAIDOS KODAI                     #
+################################################################
+JSON-RPC klaidos kodai:
+> -32700 "Parse error"
+> -32600 "Invalid Request"
+> -32601 "Method not found"
+> -32602 "Invalid params"
+> -32603 "Internal error"
 
+prisijungimo klaidos kodai:
+> 300 "login error"
+> 301 "too much attempts"
+
+################################################################
+#                PAIEŠKOS REZULTATŲ FORMATAS                   #
+################################################################
+{
+    "name": "battletoads",
+    "author": "frogman",
+    "tags": ["tag1","tag2","tag3"],
+    "date": "20150125 13:58:12",
+    "finished": false
+}
+# papildomi laukai gali būti įtraukti ateityje, "date" lauko formatas gali būti pakeistas
+
+################################################################
+#                     FORMOS FORMATAS                          #
+################################################################
+iš serverio siunčiamos formos formatas:
+{
+    "name": "battletoads",
+    "author": "frogman",
+    "tags": ["tag1","tag2","tag3"],
+    "date": "20150125 13:58:12",
+    "finished": false,
+    "allow-anon": false,
+    "public": true,
+    "show-results": true,
+    "questions": [
+        {
+            "name": "do you guys have battletoads?",
+            "desc": "Battletoads is a platformer video game created by Tim and Chris Stamper and developed by Rare as the first installment of the Battletoads series",
+            "type": "one-choice",
+            "allow-empty": false,
+            "choices": ["Yes", "No"],
+        },
+        {
+            "name": "what kind of games do you like playing?",
+            "type": "multi-choice",
+            "allow-empty": true,
+            "allow-custom": "string",
+            "choices": ["FPS games","RPG games","2d scrollers"]
+        },
+        {
+            "name": "how old are you?",
+            "type": "integer",
+            "min-val": 10,
+            "max-val": 200,
+        }
+    ]
+}
+
+publikuojamos formos formatas yra labai panašus, tik neturi "author", "date" ir "finished" laukų.
+
+> klausimą sudaro:
+  - "name" - trumpas klausimas (string)
+  * "desc" - ilgesnis klausimo paaiškinimas (string)
+  - "type" - tipas (string)
+  # papildomi nustatymai...
+
+> galimi klausimų tipai:
+  > "integer"      - skaičius
+  > "string"       - teksto eilutė
+  > "email"        - el paštas (*@*.*)
+  > "one-choice"   - vienas pasirinkimas
+  > "multi-choice" - keli pasirinkimai
+
+> papildomi nustatymai:
+  * "allow-custom" - leisti savus pasirinkimus (argumentas yra bet koks tipas išskyrus "one-choice" ir "multi-choice") (galioja tik "one-choice" ir "multi-choice" tipams) (string)
+    # pastaba: jei šis argumentas pažymėtas, galima naudoti elementarių tipų apribojimus, ir jie bus pritaikomi "custom" laukui
+  - "allow-empty"  - leisti neatsakyti į šį klausimą (boolean)
+  * "default"      - numatyta reikšmė (tipas priklauso nuo klausimo tipo)
+    > "integer"         - integer
+    > "string", "email" - string
+    > "one-choice"      - integer
+    > "multi-choice"    - array of boolean
+
+> papildomi tipų apribojimai:
+  - "integer":
+    * "min-val" - minimali reikšmė (integer)
+    * "max-val" - maksimali reikšmė (integer)
+  - "string":
+    * "min-val"  - minimalus eilutės ilgis (integer)
+    * "max-val"  - maksumalus eilutės ilgis (integer)
+    * "allow-ws" - ar leisti tarpus (whitespace) (boolean)
+    * "allow-nl" - ar leisti newline simbolius (boolean)
+  - "email":
+    * "min-val"           - min naudotojo vardo ilgis (integer)
+    * "max-val"           - max naudotojo vardo ilgis (integer)
+    * "allowed-providers" - leidžiami el. pašto tiekėjai (array of strings)
+  - "multi-choice":
+    * "min-choices" - minimalus kiekis pasirinkimų
+    * "max-choices" - maksimalus kiekis pasirinkimų
+
+> 
+
+################################################################
 
 serverio palaikomos užklausos:
->method: "connect"
+
+> method: "connect" - informuoja serverį apie klientą, taip pat gauna informaciją apie serverį
   - params:
-    - version: "desktop 0.1" "android 0.2" "iphone 0.2" etc... (nebūtinas, bet rekomenduojamas) (tipas: string)
-    - features: objektas, kurio nariai nusako papildomas galimybes (gali ir nebūti)
-      * "md5" - (tipas: integer arba boolean) - jei true arba ne 0, klientas palaiko md5 slaptažodžių kodavimą
+    * version: "desktop 0.1" "android 0.2" "iphone 0.2" etc... (nebūtinas, bet rekomenduojamas) (tipas: string)
+    * features: objektas, kurio nariai nusako papildomas galimybes (gali ir nebūti)
+      * "md5" - (tipas: boolean) - jei true, klientas palaiko md5 slaptažodžių kodavimą
   - atsakymas:
     - result - objektas:
-      - version  - serverio versija, tipas: string, pvz: "0.1" (nebūtinas, bet rekomenduojamas)
-      - features - objektas, nusakantis serverio palaikomas galimybes (nebūtinas)
-        * "md5"  - (tipas: string) - base64 užkoduotas tekstas skirtas md5 maišos funkcijai slaptažodžiams
+      * version  - serverio versija, tipas: string, pvz: "0.1" (nebūtinas, bet rekomenduojamas)
+      * features - objektas, nusakantis serverio palaikomas galimybes (nebūtinas)
+        * "md5"  - (tipas: string) - base64 užkoduotas tekstas skirtas md5 maišos funkcijai (naudojama slaptažodžiams, daugiau info md5.txt)
   - galimos klaidos:
-    # kolkas klaidų nėra
+    # kolkas klaidų nėra, bus pridėta ateityje
 
->method: "login"
+> method: "login" - prisilogina
   - params:
     - uname:    naudotojo vardas (tipas: string)
     - pass:     slaptažodis (tipas: string)
     - passtype: slaptažodžio formatas (tipas: string)
       * "plain"   - nešifruotas base64 užkoduotas slaptažodis ( http://en.wikipedia.org/wiki/Base64 ). (geriau naudoti md5 jei galimas)
       * "md5"     - md5 šifruotas base64 užkoduotas slaptažodžio kodas (daugiau informacijos md5.txt faile)
-  - atsakymas   - jei prisijungimas pavyko, serveris pateikia kliento duomenis
-    /* TODO */
+  - atsakymas   - jei prisijungimas pavyko, serveris pateikia kliento duomenis (objektas)
+    - company: (type: string) jei klientas nusako kompaniją, čia yra kompanijos pavadinimas
+    - name: (type: string) jei klientas nusako asmenį, čia yra asmens vardas (arba vardai, atskirti tarpais)
+    - surname: (type: string) jei klientas nusako asmenį, čia yra asmens pavardė (arba pavardės, atskirtos tarpais)
+    * gali būti pateikiama daugiau duomenų, priklauso nuo serverio "features" sąrašo
+  - galimos klaidos:
+    > "login error" (kodas 300) - jei prisijungimo vardas nerastas arba neteisingas slaptažodis
+    > "too much attempts" (kodas 301) - jei per daug prisijungimo bandymų
+      * "data" - tipas: integer, nusako kiek reikia laukti iki kito prisijungimo (milisekundėmis) (nebūtinas, jei nėra - 3 sekundes = 3000 ms)
+
+> method: "logout" - išsilogina, grįžta į "Anonymous" būseną
+  - atsakymas - nėra parametrų, visuomet suveikia (net jei ir neprisijungęs)
+    - result  - null
+
+> method: "find" - ieško 
+  - params:
+    * query:    paieškos eilutė, tipas: string, gali ir nebūti, arba būti tuščia (jei norima ieškti pagal autorių arba tag'us, arba visoms temoms)
+    * tags:     tipas: array of strings, tag'ai, jei norima panaikinti tam tikrus rezultatus, naudojamas "-" ženklas, pvz "-food" "gaming"
+    * sort:     tipas: string, rikiavimo tipas, galimos reikšmės: "date" (numatytasis), "relevance", "popularity"; daugiau tipų gali būti pridėta ateityje
+    * limit:    tipas: integer, apriboti rezultatų kiekį
+    * skip:     tipas: integer, praleisti pirmus x rezultatus
+    * sorttype: tipas: bool, rikiavimo tipas: true: nuo mažiausių iki didžiausių, false/null/jei iš vis nėra: nuo didžiausių iki mažiausių
+    * author:   tipas: string, nusako autoriaus username'a
+    # daugiau kriterijų gali būti pridėta ateityje
+
+> method: "fetch"
+  
