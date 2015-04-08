@@ -19,7 +19,7 @@ bendras formatas naudojamas pranešimuose yra paremtas JSON-RPC 2.0 ( http://en.
 }
   - jsonrpc - reikalingas JSON-RPC 2.0 protokolui, tipas: string
   - method  - nusako užklausos tipą, tipas: string
-  * params  - nusako parametrus užklausai, nėra būtinas, tipas: priklauso nuo užklausos
+  * params  - nusako parametrus užklausai, nėra būtinas, tipas: object
   * id      - nusako užklausos numerį, nėra būtinas, jei nesitikima atsakymo, tipas: integer, turėtų būti > 0
 
 > jei užklausa sėkmingai ivykdyta:
