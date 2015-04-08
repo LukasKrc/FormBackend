@@ -3,3 +3,7 @@ visu pirma turi siūsti "connect" užklausą kuri informuos serverį apie klient
 palaikomas galimybes (palaikomus šifravimo algoritmus, papildomus protokolus,
 kliento tipą, pan.). toumet serveris grąžina atsakymą, kuris nusako
 serverio palaikomas galimybes.
+
+serveris leidžia klientams ieškoti, siūstis bei užpildyti formas.
+
+paieška gali būti vykdoma pagal vardą, autorių, ir pagal formų tag'us.

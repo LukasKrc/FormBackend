@@ -65,6 +65,12 @@ prisijungimo klaidos kodai:
 > 300 "login error"
 > 301 "too much attempts"
 
+bendros klaidos:
+> 400 "not found"
+> 401 "not allowed"
+> 402 "already exists"
+> 403 "cannot submit"
+
 ################################################################
 #                PAIEŠKOS REZULTATŲ FORMATAS                   #
 ################################################################
@@ -84,6 +90,7 @@ iš serverio siunčiamos formos formatas:
 {
     "name": "battletoads",
     "author": "frogman",
+    "desc": "questions about computer games",
     "tags": ["tag1","tag2","tag3"],
     "date": "20150125 13:58:12",
     "finished": false,
@@ -115,6 +122,18 @@ iš serverio siunčiamos formos formatas:
 }
 
 publikuojamos formos formatas yra labai panašus, tik neturi "author", "date" ir "finished" laukų.
+
+> formą sudaro:
+  - "name"         - trumpas pavadinimas (string)
+  * "author"       - autoriaus usernam'as (string)
+  * "desc"         - paaiškinimas (string)
+  * "tags"         - tag'ai (array of strings)
+  % "date"         - publikavimo data (string)
+  % "finished"     - ar užbaigta? (boolean)
+  - "allow-anon"   - ar galima anonimiškai spręsti? (boolean)
+  - "public"       - ar galima viešai rasti? (boolean)
+  - "show-results" - ar viešai galima rodyti rezultatus? (boolean)
+  - "questions"    - klausimai (array of objects)
 
 > klausimą sudaro:
   - "name" - trumpas klausimas (string)
@@ -156,8 +175,46 @@ publikuojamos formos formatas yra labai panašus, tik neturi "author", "date" ir
     * "min-choices" - minimalus kiekis pasirinkimų
     * "max-choices" - maksimalus kiekis pasirinkimų
 
-> 
+atsakymo formatas:
+{
+    "name": "battletoads",
+    "author": "frogman",
+    "answers": [
+        { "id": 1 },
+        { "selected": [true, false, true], "custom": ["battletoads"] },
+        { "val": 20 }
+    ]
+}
+> atsakymų objektai:
+  > "integer":
+    - "val"  - atsakymas (integer)
+  > "string", "email":
+    - "val"  - atsakymas (string)
+  > "one-choice":
+    - "id"     - asakymo id (pradedant nuo 1). jei 0 - klausimas neatsakytas, arba naudojamas "custom" elementas (tipas: integer)
+    * "custom" - jei egzistuoja, klientas pasirinko "custom" atsakymą (tipas: integer arba string)
+  > "multi-choice":
+    - "selected"  - pasirinkti atsakymai (array of boolean)
+    * "custom"    - pasirinkti custom atsakymai (array of integer or string (depends on allowed custom values in question))
 
+################################################################
+#                    FORMOS STATISTIKA                         #
+################################################################
+formos statistikos formatas:
+{
+    "numvotes": 50,
+    "answers": [
+        { "choices": ["ch1", "ch2"], "votes": [25, 20] },
+        ...
+    ]
+}
+- numvotes - kiek balsų iš viso (integer)
+- answers  - atsakymai (array of object)
+  "choices" - galimi pasirinkimai (array of string or integer)
+  "votes"   - atsakymai į tuos pasirinkimus (array of integer)
+
+################################################################
+#                    SERVERIO UŽKLAUSOS                        #
 ################################################################
 
 serverio palaikomos užklausos:
@@ -175,13 +232,28 @@ serverio palaikomos užklausos:
   - galimos klaidos:
     # kolkas klaidų nėra, bus pridėta ateityje
 
+> method: "register" - kuria naują vartotoją
+  - params:
+    - uname    - naudotojo vardas (string)
+    - pass     - slaptažodis (string)
+    - passtype - sl. tipas (string)
+      > "plain" - nešifruotas base64 užkoduotas slaptažodis
+      > "md5"   - šifruotas bet nemaišytas su sesijos raktu slaptažodis (base64 koduotė)
+    * company  - kompanijos pavadinimas (jei kompanija)
+    * name     - vardas (jei asmuo)
+    * surname  - pavardė (jei asmuo)
+  - atsakymas: null - prisiregistruota ir prisijungta
+  - galmos klaidos:
+    "not allowed" (401) - neleidžiama
+    "already exists" (402) - jau egzistuoja
+
 > method: "login" - prisilogina
   - params:
     - uname:    naudotojo vardas (tipas: string)
     - pass:     slaptažodis (tipas: string)
     - passtype: slaptažodžio formatas (tipas: string)
-      * "plain"   - nešifruotas base64 užkoduotas slaptažodis ( http://en.wikipedia.org/wiki/Base64 ). (geriau naudoti md5 jei galimas)
-      * "md5"     - md5 šifruotas base64 užkoduotas slaptažodžio kodas (daugiau informacijos md5.txt faile)
+      > "plain"   - nešifruotas base64 užkoduotas slaptažodis ( http://en.wikipedia.org/wiki/Base64 ). (geriau naudoti md5 jei galimas)
+      > "md5"     - md5 šifruotas base64 užkoduotas slaptažodžio kodas (daugiau informacijos md5.txt faile)
   - atsakymas   - jei prisijungimas pavyko, serveris pateikia kliento duomenis (objektas)
     - company: (type: string) jei klientas nusako kompaniją, čia yra kompanijos pavadinimas
     - name: (type: string) jei klientas nusako asmenį, čia yra asmens vardas (arba vardai, atskirti tarpais)
@@ -196,16 +268,58 @@ serverio palaikomos užklausos:
   - atsakymas - nėra parametrų, visuomet suveikia (net jei ir neprisijungęs)
     - result  - null
 
-> method: "find" - ieško 
+> method: "find" - grąžina rezultatus atitinkančius užklausą
   - params:
-    * query:    paieškos eilutė, tipas: string, gali ir nebūti, arba būti tuščia (jei norima ieškti pagal autorių arba tag'us, arba visoms temoms)
-    * tags:     tipas: array of strings, tag'ai, jei norima panaikinti tam tikrus rezultatus, naudojamas "-" ženklas, pvz "-food" "gaming"
-    * sort:     tipas: string, rikiavimo tipas, galimos reikšmės: "date" (numatytasis), "relevance", "popularity"; daugiau tipų gali būti pridėta ateityje
-    * limit:    tipas: integer, apriboti rezultatų kiekį
-    * skip:     tipas: integer, praleisti pirmus x rezultatus
-    * sorttype: tipas: bool, rikiavimo tipas: true: nuo mažiausių iki didžiausių, false/null/jei iš vis nėra: nuo didžiausių iki mažiausių
-    * author:   tipas: string, nusako autoriaus username'a
+    * query:      paieškos eilutė, tipas: string, gali ir nebūti, arba būti tuščia (jei norima ieškti pagal autorių arba tag'us, arba visoms temoms)
+    * tags:       tipas: array of strings, tag'ai, jei norima panaikinti tam tikrus rezultatus, naudojamas "-" ženklas, pvz "-food" "gaming"
+    * sort:       tipas: string, rikiavimo tipas, galimos reikšmės: "date" (numatytasis), "relevance", "popularity"; daugiau tipų gali būti pridėta ateityje
+    * limit:      tipas: integer, apriboti rezultatų kiekį
+    * skip:       tipas: integer, praleisti pirmus x rezultatus
+    * sorttype:   tipas: bool, rikiavimo tipas: true: nuo mažiausių iki didžiausių, false/null/jei iš vis nėra: nuo didžiausių iki mažiausių
+    * author:     tipas: string, nusako autoriaus username'a
+    * searchtags: tipas: boolean, nusako ar query gali turėti tag'ų (default: false)
     # daugiau kriterijų gali būti pridėta ateityje
+  - atsakymas: array of objects, žiūrėti skyrių "PAIEŠKOS REZULTATŲ FORMATAS"
+  - galimos klaidos: jei nieko nerasta, tiesiog grąžinamas tuščias masyvas
 
-> method: "fetch"
-  
+> method: "fetch" - pajama formą su klausimais iš serverio
+  - params:
+    * author:   autoriaus usernam'as (tuščias jei anoniminė anketa)
+    - name:     formos pavadinimas
+  - atsakymas:  žiūrėti "FORMOS FORMATAS" skyrių
+  - galimos klaidos:
+    > "not found" (kodas 400) - forma nerasta
+
+> method: "submit" - nusiunčia užpildytos formos informaciją (atsakymus)
+  - params: žiūrėti "FORMOS FORMATAS" skyrių
+  - atsakymas: null
+  - galimos klaidos:
+    > "not found" (kodas 400) - nerasta tokios formos
+    > "cannot sumbit" (kodas 403) - neleidžiama užpildyti šios formos
+
+> method: "create" - kuria formą
+ - params: žiūrėti "FORMOS FORMATAS" skyrių
+ - atsakymas: null
+ - galimos klaidos:
+   > "not allowed" (kodas 401) - neleidžiama kurti formos
+   > "already exists" (kodas 402) - forma ir taip jau egzistuoja
+
+> method: "delete" - trina formą
+  - params:
+    * author: autoriaus usernam'as
+    - name:   formos pavadinimas
+  - atsakymas: null
+  - galimos klaidos:
+    > "not found" (kodas 400) - neegzistuoja
+    > "not allowed" (kodas 401) - neleidžiama trinti
+
+> method: "stats" - rodo statistiką
+  - params:
+    * author: autoriaus usernam'as
+    - name:   formos pavadinimas
+  - atsakymas: žiūrėti "FORMOS STATISTIKA" skyrių
+  - galimos klaidos:
+    > "not found" (kodas 400) - nerasta forma
+    > "not allowed" (kodas 401) - neleidžiama gauti statistinės informacijos
+
+# papildomi metodai gali būti pridėti ateityje
