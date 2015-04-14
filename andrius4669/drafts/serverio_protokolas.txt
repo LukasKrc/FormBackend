@@ -1,9 +1,7 @@
-serveris klausosi TCP protokolu naudodamas 17303 portą. prisijungęs klientas
-visu pirma turi siūsti "connect" užklausą kuri informuos serverį apie kliento
-palaikomas galimybes (palaikomus šifravimo algoritmus, papildomus protokolus,
-kliento tipą, pan.). toumet serveris grąžina atsakymą, kuris nusako
-serverio palaikomas galimybes.
+serveris klausosi HTTP protokolu naudodamas 80 portą, ir HTTPS formatu naudodamas 443 portą.
 
 serveris leidžia klientams ieškoti, siūstis bei užpildyti formas.
 
-paieška gali būti vykdoma pagal vardą, autorių, ir pagal formų tag'us.
+paieška gali būti vykdoma pagal vardą, autorių, pagal formų tag'us bei kitus paieškos kriterijus.
+
+anonimai negali kurti formų, tačiau jie gali jas pildyti, jei formos autorius tai leidžia.

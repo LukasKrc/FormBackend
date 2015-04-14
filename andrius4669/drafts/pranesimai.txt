@@ -1,95 +1,108 @@
 šis dokumentas nusako protokolą kuris bus naudojamas kliento ir serverio komunikacijai.
-protokolas yra sudarytas iš atskirų JSON ( http://en.wikipedia.org/wiki/JSON http://json.org/ ) formato pranešimų, atskirtų ASCII NUL simboliu (\0).
+protokolas naudoja REST technologiją, ir yra perduodamas HTTP/HTTPS protokolu. duomenims yra naudojamas JSON formatas.
 serveris į kiekvieną kliento užklausą grąžina tam tikrą atsakymą.
 
+REST standartas nusako, kad kiekviena serverio operacija gali būti apibrėžta 4 operacijomis:
+- GET - paimti duomenis iš serverio
+- PUT - sukurti/perrašyti duomenis
+- POST - padėti duomenis į serverį
+- DELETE - trinti duomenis iš serverio
 
-################################################################
-#                BENDRAS PRANEŠIMŲ FORMATAS                    #
-################################################################
-bendras formatas naudojamas pranešimuose yra paremtas JSON-RPC 2.0 ( http://en.wikipedia.org/wiki/JSON-RPC http://www.jsonrpc.org/specification ):
+mes naudosime HTTP protokolą komunikacijai, ir perduosime duomenis JSON formatu.
 
-- užklausa:
-{
-    "jsonrpc": "2.0",
-    "method": "užklausos tipas",
-    "params": {
-        /* parametrai, nebūtinas */
-    },
-    "id": 1
-}
-  - jsonrpc - reikalingas JSON-RPC 2.0 protokolui, tipas: string
-  - method  - nusako užklausos tipą, tipas: string
-  * params  - nusako parametrus užklausai, nėra būtinas, tipas: object
-  * id      - nusako užklausos numerį, nėra būtinas, jei nesitikima atsakymo, tipas: integer, turėtų būti > 0
+kai kurios funkcijos gali reikalauti prisijungimo, tam naudosime http://en.wikipedia.org/wiki/Basic_access_authentication
 
-> jei užklausa sėkmingai ivykdyta:
-{
-    "jsonrpc": "2.0",
-    "result": 123,
-    "id": 1
-}
-  - jsonrpc - būtinas JSON-RPC 2.0 protokolui, tipas: string
-  - result  - užklausos atsakymas, tipas priklauso nuo pačios užklausos
-  - id      - užklausos numeris, tipas: integer
+BA būdu siunčiami slaptažodžiai nėra šifruojami, todėl rekomenduojama naudoti HTTPS jei formos pildymui būtinas prisijungimas
 
-> jei ivyko klaida:
-{
-    "jsonrpc": "2.0",
-    "error": {
-        "code": 123,
-        "message": "klaidos pranešimas",
-        "data": {
-            /* papildoma informacija apie klaidą */
-        }
-    },
-    "id": 1
-}
-  - jsonrpc   - būtinas JSON-RPC 2.0, tipas: string
-  - error     - tipas: object, informacija apie klaidą:
-    - code    - klaidos kodas, tipas: integer
-    - message - trumpas klaidos pranešimas, tipas: string
-    * data    - papildoma info apie klaidą, gali ir nebūti, tipas: priklauso nuo klaidos
-  - id      - užklausos numeris, tipas: integer  arba null (jei ivyko klaida bandant nuskaityti id)
+programavimui galima naudoti RESTlet framework'ą ( http://restlet.com/products/restlet-framework/ )
 
-################################################################
-#                    GALIMI KLAIDOS KODAI                     #
-################################################################
-JSON-RPC klaidos kodai:
-> -32700 "Parse error"
-> -32600 "Invalid Request"
-> -32601 "Method not found"
-> -32602 "Invalid params"
-> -32603 "Internal error"
+naudojamos užklausos:
 
-prisijungimo klaidos kodai:
-> 300 "login error"
-> 301 "too much attempts"
+> /register
+  > metodas POST
+    > priregistruoja naują vartotoją
+    > pateikiami duomenys (JSON formatu)
+      - uname    - naudotojo vardas (string)
+      - pass     - slaptažodis (string)
+      * company  - kompanijos pavadinimas (jei kompanija) (string)
+      * name     - vardas (jei asmuo) (string)
+      * surname  - pavardė (jei asmuo) (string)
 
-bendros klaidos:
-> 400 "not found"
-> 401 "not allowed"
-> 402 "already exists"
-> 403 "cannot submit"
+> /forms/naudotojovardas/formospavadinimas
+  > metodas GET
+    > grąžina pasirinktą formą
+    > rezultatas: žiūrėti "FORMOS FORMATAS" sekciją, "iš serverio siunčiamos formos formatas" skyrių
+  > metodas PUT
+    > išsiunčia formą
+    > žiūrėti "FORMOS FORMATAS" sekciją, "publikuojamos formos formatas" skyrių
+  > metodas DELETE
+    > ištrina formą
+
+> /submit/naudotojovardas/formospavadinimas
+  > metodas POST
+    > formos užpildymas
+    > žiūrėti "FORMOS FORMATAS" sekciją, "atsakymo formatas" sekciją
+
+> /stats/naudotojovardas/formospavadinimas
+  > metodas GET
+    > gauna info apie rezultatus
+    > žiūrėti "FORMOS STATISTIKA" sekciją
+
+> /find
+  > metodas GET
+    > vykdo paiešką
+    > parametrai yra perduodami per adresą naudojant tokį formatą: /find?param1=val1&param3=val3+with+spaces ( http://en.wikipedia.org/wiki/Query_string )
+    > galimi parametrai:
+      * q:          paieškos eilutė
+      * tags:       kableliais atskirti tag'ai, jei norima panaikinti tam tikrus rezultatus, naudojamas "-" ženklas, pvz: -food,gaming
+      * sort:       rikiavimo tipas, galimos reikšmės: "date" (numatytasis), "relevance", "popularity"; daugiau tipų gali būti pridėta ateityje
+      * limit:      apriboti rezultatų kiekį, pvz: 10
+      * skip:       praleisti pirmus x rezultatus
+      * order:      ascending - didėjančia tvarka, descending - mažėjančia tvarka
+      * author:     nusako autoriaus username'a
+      * searchtags: nusako ar query gali turėti tag'ų (0 arba 1)
+      * allow-anon: filtruoti pagal tai, ar leidžiama pildyti anonimams (1 - tik anonimines formas, 0 - tik neanonimines)
+      * finished:   filtruoti pagal tai, ar užpildėme formą
+    > rezultatas: žiūrėti "PAIEŠKOS REZULTATŲ FORMATAS" sekciją
+
+> /user/naudotojovardas
+  > metodas GET
+    > gražina info apie naudotoją json formatu:
+      {
+          "company": "kompanijos pavadinimas"
+      }
+    >>> arba
+      {
+          "name": "vardas/vardai",
+          "surname": "pavarde/pavardes"
+      }
+  > metodas PUT
+    > atnaujina informaciją apie klientą
+    > įrašomi tik tie laukai, kurie bus keičiami
+  > metodas DELETE
+    > ištrina vartotoją
+
 
 ################################################################
 #                PAIEŠKOS REZULTATŲ FORMATAS                   #
 ################################################################
+paieškos rezultatai yra pateikiami kaip objektų masyvas: [{...}, {...}, {...}, ...]
+
+naudojami tokie objektai:
 {
     "name": "battletoads",
     "author": "frogman",
     "tags": ["tag1","tag2","tag3"],
     "date": "20150125 13:58:12",
-    "finished": false
+    "finished": false,
+    "allow-anon": false
 }
-# papildomi laukai gali būti įtraukti ateityje, "date" lauko formatas gali būti pakeistas
 
 ################################################################
 #                     FORMOS FORMATAS                          #
 ################################################################
 iš serverio siunčiamos formos formatas:
 {
-    "name": "battletoads",
-    "author": "frogman",
     "desc": "questions about computer games",
     "tags": ["tag1","tag2","tag3"],
     "date": "20150125 13:58:12",
@@ -121,11 +134,9 @@ iš serverio siunčiamos formos formatas:
     ]
 }
 
-publikuojamos formos formatas yra labai panašus, tik neturi "author", "date" ir "finished" laukų.
+publikuojamos formos formatas yra labai panašus, tik neturi "date" ir "finished" laukų.
 
 > formą sudaro:
-  - "name"         - trumpas pavadinimas (string)
-  * "author"       - autoriaus usernam'as (string)
   * "desc"         - paaiškinimas (string)
   * "tags"         - tag'ai (array of strings)
   % "date"         - publikavimo data (string)
@@ -176,15 +187,11 @@ publikuojamos formos formatas yra labai panašus, tik neturi "author", "date" ir
     * "max-choices" - maksimalus kiekis pasirinkimų
 
 atsakymo formatas:
-{
-    "name": "battletoads",
-    "author": "frogman",
-    "answers": [
-        { "id": 1 },
-        { "selected": [true, false, true], "custom": ["battletoads"] },
-        { "val": 20 }
-    ]
-}
+[
+    { "id": 1 },
+    { "selected": [true, false, true], "custom": ["battletoads"] },
+    { "val": 20 }
+]
 > atsakymų objektai:
   > "integer":
     - "val"  - atsakymas (integer)
@@ -212,114 +219,3 @@ formos statistikos formatas:
 - answers  - atsakymai (array of object)
   "choices" - galimi pasirinkimai (array of string or integer)
   "votes"   - atsakymai į tuos pasirinkimus (array of integer)
-
-################################################################
-#                    SERVERIO UŽKLAUSOS                        #
-################################################################
-
-serverio palaikomos užklausos:
-
-> method: "connect" - informuoja serverį apie klientą, taip pat gauna informaciją apie serverį
-  - params:
-    * version: "desktop 0.1" "android 0.2" "iphone 0.2" etc... (nebūtinas, bet rekomenduojamas) (tipas: string)
-    * features: objektas, kurio nariai nusako papildomas galimybes (gali ir nebūti)
-      * "md5" - (tipas: boolean) - jei true, klientas palaiko md5 slaptažodžių kodavimą
-  - atsakymas:
-    - result - objektas:
-      * version  - serverio versija, tipas: string, pvz: "0.1" (nebūtinas, bet rekomenduojamas)
-      * features - objektas, nusakantis serverio palaikomas galimybes (nebūtinas)
-        * "md5"  - (tipas: string) - base64 užkoduotas tekstas skirtas md5 maišos funkcijai (naudojama slaptažodžiams, daugiau info md5.txt)
-  - galimos klaidos:
-    # kolkas klaidų nėra, bus pridėta ateityje
-
-> method: "register" - kuria naują vartotoją
-  - params:
-    - uname    - naudotojo vardas (string)
-    - pass     - slaptažodis (string)
-    - passtype - sl. tipas (string)
-      > "plain" - nešifruotas base64 užkoduotas slaptažodis
-      > "md5"   - šifruotas bet nemaišytas su sesijos raktu slaptažodis (base64 koduotė)
-    * company  - kompanijos pavadinimas (jei kompanija)
-    * name     - vardas (jei asmuo)
-    * surname  - pavardė (jei asmuo)
-  - atsakymas: null - prisiregistruota ir prisijungta
-  - galmos klaidos:
-    "not allowed" (401) - neleidžiama
-    "already exists" (402) - jau egzistuoja
-
-> method: "login" - prisilogina
-  - params:
-    - uname:    naudotojo vardas (tipas: string)
-    - pass:     slaptažodis (tipas: string)
-    - passtype: slaptažodžio formatas (tipas: string)
-      > "plain"   - nešifruotas base64 užkoduotas slaptažodis ( http://en.wikipedia.org/wiki/Base64 ). (geriau naudoti md5 jei galimas)
-      > "md5"     - md5 šifruotas base64 užkoduotas slaptažodžio kodas (daugiau informacijos md5.txt faile)
-  - atsakymas   - jei prisijungimas pavyko, serveris pateikia kliento duomenis (objektas)
-    - company: (type: string) jei klientas nusako kompaniją, čia yra kompanijos pavadinimas
-    - name: (type: string) jei klientas nusako asmenį, čia yra asmens vardas (arba vardai, atskirti tarpais)
-    - surname: (type: string) jei klientas nusako asmenį, čia yra asmens pavardė (arba pavardės, atskirtos tarpais)
-    * gali būti pateikiama daugiau duomenų, priklauso nuo serverio "features" sąrašo
-  - galimos klaidos:
-    > "login error" (kodas 300) - jei prisijungimo vardas nerastas arba neteisingas slaptažodis
-    > "too much attempts" (kodas 301) - jei per daug prisijungimo bandymų
-      * "data" - tipas: integer, nusako kiek reikia laukti iki kito prisijungimo (milisekundėmis) (nebūtinas, jei nėra - 3 sekundes = 3000 ms)
-
-> method: "logout" - išsilogina, grįžta į "Anonymous" būseną
-  - atsakymas - nėra parametrų, visuomet suveikia (net jei ir neprisijungęs)
-    - result  - null
-
-> method: "find" - grąžina rezultatus atitinkančius užklausą
-  - params:
-    * query:      paieškos eilutė, tipas: string, gali ir nebūti, arba būti tuščia (jei norima ieškti pagal autorių arba tag'us, arba visoms temoms)
-    * tags:       tipas: array of strings, tag'ai, jei norima panaikinti tam tikrus rezultatus, naudojamas "-" ženklas, pvz "-food" "gaming"
-    * sort:       tipas: string, rikiavimo tipas, galimos reikšmės: "date" (numatytasis), "relevance", "popularity"; daugiau tipų gali būti pridėta ateityje
-    * limit:      tipas: integer, apriboti rezultatų kiekį
-    * skip:       tipas: integer, praleisti pirmus x rezultatus
-    * sorttype:   tipas: bool, rikiavimo tipas: true: nuo mažiausių iki didžiausių, false/null/jei iš vis nėra: nuo didžiausių iki mažiausių
-    * author:     tipas: string, nusako autoriaus username'a
-    * searchtags: tipas: boolean, nusako ar query gali turėti tag'ų (default: false)
-    # daugiau kriterijų gali būti pridėta ateityje
-  - atsakymas: array of objects, žiūrėti skyrių "PAIEŠKOS REZULTATŲ FORMATAS"
-  - galimos klaidos: jei nieko nerasta, tiesiog grąžinamas tuščias masyvas
-
-> method: "fetch" - pajama formą su klausimais iš serverio
-  - params:
-    * author:   autoriaus usernam'as (tuščias jei anoniminė anketa)
-    - name:     formos pavadinimas
-  - atsakymas:  žiūrėti "FORMOS FORMATAS" skyrių
-  - galimos klaidos:
-    > "not found" (kodas 400) - forma nerasta
-
-> method: "submit" - nusiunčia užpildytos formos informaciją (atsakymus)
-  - params: žiūrėti "FORMOS FORMATAS" skyrių
-  - atsakymas: null
-  - galimos klaidos:
-    > "not found" (kodas 400) - nerasta tokios formos
-    > "cannot sumbit" (kodas 403) - neleidžiama užpildyti šios formos
-
-> method: "create" - kuria formą
- - params: žiūrėti "FORMOS FORMATAS" skyrių
- - atsakymas: null
- - galimos klaidos:
-   > "not allowed" (kodas 401) - neleidžiama kurti formos
-   > "already exists" (kodas 402) - forma ir taip jau egzistuoja
-
-> method: "delete" - trina formą
-  - params:
-    * author: autoriaus usernam'as
-    - name:   formos pavadinimas
-  - atsakymas: null
-  - galimos klaidos:
-    > "not found" (kodas 400) - neegzistuoja
-    > "not allowed" (kodas 401) - neleidžiama trinti
-
-> method: "stats" - rodo statistiką
-  - params:
-    * author: autoriaus usernam'as
-    - name:   formos pavadinimas
-  - atsakymas: žiūrėti "FORMOS STATISTIKA" skyrių
-  - galimos klaidos:
-    > "not found" (kodas 400) - nerasta forma
-    > "not allowed" (kodas 401) - neleidžiama gauti statistinės informacijos
-
-# papildomi metodai gali būti pridėti ateityje
