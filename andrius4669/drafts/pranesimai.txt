@@ -38,7 +38,7 @@ naudojamos užklausos:
   > metodas DELETE
     > ištrina formą
 
-> /submit/naudotojovardas/formospavadinimas
+> /answers/naudotojovardas/formospavadinimas
   > metodas POST
     > formos užpildymas
     > žiūrėti "FORMOS FORMATAS" sekciją, "atsakymo formatas" sekciją
@@ -48,10 +48,10 @@ naudojamos užklausos:
     > gauna info apie rezultatus
     > žiūrėti "FORMOS STATISTIKA" sekciją
 
-> /find
+> /forms
   > metodas GET
     > vykdo paiešką
-    > parametrai yra perduodami per adresą naudojant tokį formatą: /find?param1=val1&param3=val3+with+spaces ( http://en.wikipedia.org/wiki/Query_string )
+    > parametrai yra perduodami per adresą naudojant tokį formatą: /forms?param1=val1&param3=val3+with+spaces ( http://en.wikipedia.org/wiki/Query_string )
     > galimi parametrai:
       * q:          paieškos eilutė
       * tags:       kableliais atskirti tag'ai, jei norima panaikinti tam tikrus rezultatus, naudojamas "-" ženklas, pvz: -food,gaming
