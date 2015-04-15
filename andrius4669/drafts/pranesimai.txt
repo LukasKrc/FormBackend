@@ -28,7 +28,7 @@ naudojamos užklausos:
       * name     - vardas (jei asmuo) (string)
       * surname  - pavardė (jei asmuo) (string)
 
-> /forms/naudotojovardas/formospavadinimas
+> /forms/id
   > metodas GET
     > grąžina pasirinktą formą
     > rezultatas: žiūrėti "FORMOS FORMATAS" sekciją, "iš serverio siunčiamos formos formatas" skyrių
@@ -64,6 +64,10 @@ naudojamos užklausos:
       * allow-anon: filtruoti pagal tai, ar leidžiama pildyti anonimams (1 - tik anonimines formas, 0 - tik neanonimines)
       * finished:   filtruoti pagal tai, ar užpildėme formą
     > rezultatas: žiūrėti "PAIEŠKOS REZULTATŲ FORMATAS" sekciją
+  > metodas POST
+    > sukuria naują formą
+    > žiūrėti "FORMOS FORMATAS" sekciją, "publikuojamos formos formatas" skyrių
+    > rezultatas: grąžina formos id: { "id": 123 }
 
 > /user/naudotojovardas
   > metodas GET
@@ -86,10 +90,15 @@ naudojamos užklausos:
 ################################################################
 #                PAIEŠKOS REZULTATŲ FORMATAS                   #
 ################################################################
-paieškos rezultatai yra pateikiami kaip objektų masyvas: [{...}, {...}, {...}, ...]
+paieškos rezultatai yra pateikiami kaip objektas turintis objektų masyvą:
+{
+    "count": 10,
+    "results": [ {...}, {...}, {...}, ... ]
+}
 
 naudojami tokie objektai:
 {
+    "id": 123,
     "name": "battletoads",
     "author": "frogman",
     "tags": ["tag1","tag2","tag3"],
@@ -103,6 +112,9 @@ naudojami tokie objektai:
 ################################################################
 iš serverio siunčiamos formos formatas:
 {
+    "id": 123,
+    "name": "name of form",
+    "author": "frogman",
     "desc": "questions about computer games",
     "tags": ["tag1","tag2","tag3"],
     "date": "20150125 13:58:12",
@@ -134,7 +146,7 @@ iš serverio siunčiamos formos formatas:
     ]
 }
 
-publikuojamos formos formatas yra labai panašus, tik neturi "date" ir "finished" laukų.
+publikuojamos formos formatas yra labai panašus, tik neturi "date", "id", "author" ir "finished" laukų.
 
 > formą sudaro:
   * "desc"         - paaiškinimas (string)
