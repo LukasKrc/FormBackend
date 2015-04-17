@@ -18,7 +18,7 @@ programavimui galima naudoti RESTlet framework'ą ( http://restlet.com/products/
 
 naudojamos užklausos:
 
-> /register
+> /user
   > metodas POST
     > priregistruoja naują vartotoją
     > pateikiami duomenys (JSON formatu)

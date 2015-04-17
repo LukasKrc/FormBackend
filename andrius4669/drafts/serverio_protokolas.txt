@@ -1,4 +1,4 @@
-serveris klausosi HTTP protokolu naudodamas 80 portą, ir HTTPS formatu naudodamas 443 portą.
+serveris klausosi HTTP protokolu naudodamas 17303 portą, ir HTTPS formatu naudodamas 17304 portą.
 
 serveris leidžia klientams ieškoti, siūstis bei užpildyti formas.
 
