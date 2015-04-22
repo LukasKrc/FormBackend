@@ -1,4 +1,8 @@
-serveris klausosi HTTP protokolu naudodamas 17303 portą, ir HTTPS formatu naudodamas 17304 portą.
+serveris klausosi HTTP bei HTTPS protokolais.
+
+testuojant kogero bus naudodamas 17303 portas HTTP protokolui, ir 17304 portas HTTPS protokolui, kadangi jie nereikalauja root teisių unix sistemose.
+
+tiksliai dar nėra nuspręsta kokius portus naudosim (standartinius ar ne), todėl klientas turėtų turėti galimybę juos pasirinkti.
 
 serveris leidžia klientams ieškoti, siūstis bei užpildyti formas.
 
