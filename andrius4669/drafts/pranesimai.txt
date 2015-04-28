@@ -15,7 +15,8 @@ klientas siūs naudotojo vardą ir slaptažodį kiekvienai užklausai.
 kadangi HTTP BASIC AUTH metodu siunčiami slaptažodžiai nėra šifruojami, rekomenduojama naudoti HTTPS
 anoniminiai vartotojai naudos vardą "Anonymous", ir tuščią slaptažodį
 
-programavimui galima naudoti RESTlet framework'ą ( http://restlet.com/products/restlet-framework/ )
+programavimui galima naudoti Jersey ( https://jersey.java.net/ ),
+RESTlet framework'ą ( http://restlet.com/products/restlet-framework/ ) arba praktiškai bet ką kas veikia (svarbu kad kiti projekto nariai būtų su tuo susipažinę)
 
 naudojamos užklausos:
 
