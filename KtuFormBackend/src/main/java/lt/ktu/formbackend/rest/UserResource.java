@@ -2,7 +2,6 @@ package lt.ktu.formbackend.rest;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
@@ -12,7 +11,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import lt.ktu.formbackend.dao.DaoException;
-import lt.ktu.formbackend.model.User;
 import lt.ktu.formbackend.dao.impl.db.UserDaoDbImpl;
 
 /**
@@ -20,7 +18,7 @@ import lt.ktu.formbackend.dao.impl.db.UserDaoDbImpl;
  *
  * @author Lukas
  */
-@Path("/")
+@Path("/user")
 public class UserResource {
 
     private UserDaoDbImpl userDao;

@@ -17,7 +17,7 @@ public class User {
     private String name;
     private String surname;
     
-    
+    //<editor-fold desc="Getters, setters">
     public Long getId() {
         return id;
     }
@@ -65,13 +65,6 @@ public class User {
     public void setSurname(String surname) {
         this.surname = surname;
     }
-    
-    @Override 
-    public String toString() {
-        return "User [name=" + name + ", surname=" + surname +
-                ", company=" + company + ", id=" + id +
-                ", username=" + username + ", password=" +
-                password;
-    }
+    //</editor-fold>
     
 }
