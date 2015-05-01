@@ -22,7 +22,7 @@ public class UserDaoDbImpl implements UserDao {
     private static final String USER_GET_USERNAME_SQL = "SELECT id, username, password, name ,surname ,company FROM Users WHERE username = ?";
     private static final String USER_GET_SQL = "SELECT id, username, password, name, surname, company FROM Users WHERE id = ?";
     private static final String USER_GET_ALL_SQL = "SELECT id, username, password, name, surname, company FROM Users";
-    private static final String USER_CREATE_SQL = "INSERT INTO Users (username, password, name, surname, company) values (?, ?, ?, ?, ?)";
+    private static final String USER_CREATE_SQL = "INSERT INTO Users (username, password, name, surname, company, isCompany) values (?, ?, ?, ?, ?, ?)";
     
     @Override
     public List<User> getAllUsers() throws DaoException {
@@ -115,11 +115,14 @@ public class UserDaoDbImpl implements UserDao {
     
     private Boolean createUserFunction(PreparedStatement statement, User user) {
         try {
+            Integer isCompany = 0;
+            if (user.getIsCompany()) isCompany = 1;
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getPassword());
             statement.setString(3, user.getName());
             statement.setString(4, user.getSurname());
             statement.setString(5, user.getCompany());
+            statement.setInt(6, isCompany);
             if (statement.execute()) {
                 return true;
             }
@@ -138,6 +141,9 @@ public class UserDaoDbImpl implements UserDao {
         user.setCompany(rs.getString("company"));
         user.setName(rs.getString("name"));
         user.setSurname(rs.getString("surname"));
+        Boolean isCompany = false;
+        if (rs.getInt("isCompany") == 1) isCompany = true;
+        user.setIsCompany(isCompany);
         return user;
     }
 

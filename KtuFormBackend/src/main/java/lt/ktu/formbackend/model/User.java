@@ -16,8 +16,17 @@ public class User {
     private String company;
     private String name;
     private String surname;
+    private Boolean isCompany;
     
     //<editor-fold desc="Getters, setters">
+    public Boolean getIsCompany() {
+        return isCompany;
+    }
+
+    public void setIsCompany(Boolean isCompany) {
+        this.isCompany = isCompany;
+    }
+    
     public Long getId() {
         return id;
     }

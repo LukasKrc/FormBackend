@@ -24,6 +24,7 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(lt.ktu.formbackend.rest.AnswerResource.class);
         resources.add(lt.ktu.formbackend.rest.FormResource.class);
         resources.add(lt.ktu.formbackend.rest.UserResource.class);
     }
