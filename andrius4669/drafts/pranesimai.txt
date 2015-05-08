@@ -170,8 +170,8 @@ publikuojamos formos formatas yra labai panašus, tik neturi "date", "id", "auth
   > "integer"      - skaičius
   > "string"       - teksto eilutė
   > "email"        - el paštas (*@*.*)
-  > "one-choice"   - vienas pasirinkimas
-  > "multi-choice" - keli pasirinkimai
+  > "one-choice"   - yra keli pasirinkimai, bet galima pasirinkti tik vieną
+  > "multi-choice" - yra keli pasirinkimai, galima pasirinkti nevaržomai
 
 > papildomi nustatymai:
   * "allow-custom" - leisti savus pasirinkimus (argumentas yra bet koks tipas išskyrus "one-choice" ir "multi-choice") (galioja tik "one-choice" ir "multi-choice" tipams) (string)
