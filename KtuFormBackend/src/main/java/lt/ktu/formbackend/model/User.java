@@ -1,6 +1,9 @@
 package lt.ktu.formbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.enterprise.inject.Model;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -11,7 +14,9 @@ import javax.enterprise.inject.Model;
 public class User {
 
     private Long id;
-    private String username;
+    @JsonProperty("uname")
+    private String username;    
+    @JsonProperty("pass")
     private String password;
     private String company;
     private String name;
@@ -26,7 +31,7 @@ public class User {
     public void setIsCompany(Boolean isCompany) {
         this.isCompany = isCompany;
     }
-    
+
     public Long getId() {
         return id;
     }
@@ -34,11 +39,11 @@ public class User {
     public String getUsername() {
         return username;
     }
-
+    
     public String getPassword() {
         return password;
     }
-    
+
     public String getCompany() {
         return company;
     }

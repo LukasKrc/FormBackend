@@ -19,10 +19,21 @@ import lt.ktu.formbackend.model.User;
  */
 public class UserDaoDbImpl implements UserDao {
 
-    private static final String USER_GET_USERNAME_SQL = "SELECT id, username, password, name ,surname ,company FROM Users WHERE username = ?";
-    private static final String USER_GET_SQL = "SELECT id, username, password, name, surname, company FROM Users WHERE id = ?";
-    private static final String USER_GET_ALL_SQL = "SELECT id, username, password, name, surname, company FROM Users";
+    private static final String USER_GET_USERNAME_SQL = "SELECT id, username, password, name ,surname ,company, isCompany FROM Users WHERE username = ?";
+    private static final String USER_GET_SQL = "SELECT id, username, password, name, surname, company, isCompany FROM Users WHERE id = ?";
+    private static final String USER_GET_ALL_SQL = "SELECT id, username, password, name, surname, company, isCompany FROM Users";
     private static final String USER_CREATE_SQL = "INSERT INTO Users (username, password, name, surname, company, isCompany) values (?, ?, ?, ?, ?, ?)";
+    private static final String USER_DELETE_SQL = "DELETE FROM Users WHERE username = ?";
+    
+    @Override
+    public Boolean updateUser(User user, String username) throws DaoException {
+        String sql = SQLBuilder.buildUserUpdateSQL(user, username);
+        try {
+            return SqlExecutor.executePreparedStatement(this::updateUserFunction, sql, user);
+        } catch (DaoException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
     
     @Override
     public List<User> getAllUsers() throws DaoException {
@@ -60,6 +71,15 @@ public class UserDaoDbImpl implements UserDao {
             return SqlExecutor.executePreparedStatement(this::createUserFunction, USER_CREATE_SQL, user);
         } catch (DaoException e) {
             System.out.println(e.getMessage());
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
+    
+    @Override
+    public Boolean deleteUser(String username) throws DaoException {
+        try {
+            return SqlExecutor.executePreparedStatement(this::deleteUserFunction, USER_DELETE_SQL, username);
+        } catch (DaoException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }
     }
@@ -123,14 +143,56 @@ public class UserDaoDbImpl implements UserDao {
             statement.setString(4, user.getSurname());
             statement.setString(5, user.getCompany());
             statement.setInt(6, isCompany);
-            if (statement.execute()) {
+            try {
+                statement.execute();
                 return true;
+            } catch (SQLException e) {
+                throw new DaoException(Type.ERROR, e.getMessage());
             }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new DaoException(Type.ERROR, e.getMessage());
         }
-        throw new DaoException(Type.ERROR, "Can't create user");
+    }
+    
+    private Boolean updateUserFunction(PreparedStatement statement, User user) {
+        int i = 1;
+        try {
+            if (user.getIsCompany() != null) {
+                Integer isCompany = user.getIsCompany() ? 1 : 0;
+                statement.setInt(i++, isCompany);
+            }
+            if (user.getCompany() != null) {
+                statement.setString(i++, user.getCompany());
+            }
+            if (user.getName() != null) {
+                statement.setString(i++, user.getName());
+            }
+            if (user.getPassword() != null) {
+                statement.setString(i++, user.getPassword());
+            }
+            if (user.getSurname() != null) {
+                statement.setString(i++, user.getSurname());
+            }
+            if (statement.execute())
+                return true;
+            else 
+                return false;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
+    
+    private Boolean deleteUserFunction(PreparedStatement statement, String username) {
+        try {
+            statement.setString(1, username);
+            if (statement.execute())
+                return true;
+            else
+                return false;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
     }
 
     private User fillUserData(ResultSet rs) throws SQLException {
