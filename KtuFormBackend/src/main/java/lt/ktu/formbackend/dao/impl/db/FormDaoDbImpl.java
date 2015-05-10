@@ -9,6 +9,7 @@ import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.DaoException.Type;
 import lt.ktu.formbackend.dao.FormDao;
 import lt.ktu.formbackend.model.Form;
+import lt.ktu.formbackend.model.Question;
 
 /**
  *
@@ -21,7 +22,16 @@ public class FormDaoDbImpl implements FormDao {
     private static final String FORM_GET_ID_SQL = "SELECT id, name, author, desc, date, allowAnon, public, showResults FROM Forms WHERE id = ?";
     private static final String FORM_DELETE_SQL = "DELETE FROM Forms WHERE id = ?";
     private static final String FORM_GET_USER_NAME_ID_SQL = "SELECT author FROM Forms WHERE id = ?";
+    private static final String FORM_GET_ID_BY_USER_NAME_SQL = "SELECT id FROM Forms WHERE name = ? AND author = ?";
 
+    private QuestionDaoDbImpl questionDao = new QuestionDaoDbImpl();
+    
+    @Override
+    public Long getIdOfForm(Form form) {
+            return SqlExecutor.executePreparedStatement(this::getIdOfFormFunction, FORM_GET_ID_BY_USER_NAME_SQL, form);
+    }
+
+    
     @Override
     public Boolean deleteForm(long id) {
         try {
@@ -33,11 +43,22 @@ public class FormDaoDbImpl implements FormDao {
 
     @Override
     public Long createForm(Form form) {
-        try {
-            return SqlExecutor.executePreparedStatement(this::createFormFunction, FORM_CREATE_SQL, form);
-        } catch (DaoException e) {
-            System.out.println(e.getMessage());
-            throw new DaoException(Type.ERROR, e.getMessage());
+        if (form.hasMandatoryFields() != null){
+            System.out.println(form.getQuestions().get(1).getAllowEmpty());
+            throw new DaoException(Type.ERROR, "Form is missing mandatory fields: " + form.hasMandatoryFields());
+        } else {
+            try {
+                long formId = SqlExecutor.executePreparedStatement(this::createFormFunction, FORM_CREATE_SQL, form);
+                for (int i = 0; i < form.getQuestions().size(); i++) {
+                    Question question = form.getQuestions().get(i);
+                    question.setQuestionNumber(i);
+                    questionDao.createQuestion(question, formId);
+                }
+                return formId;
+            } catch (DaoException e) {
+                System.out.println(e.getMessage());
+                throw new DaoException(Type.ERROR, e.getMessage());
+            }
         }
     }
 
@@ -141,7 +162,12 @@ public class FormDaoDbImpl implements FormDao {
             try {
                 statement.execute();
                 ResultSet rs = statement.getResultSet();
-                return fillFormData(rs);
+                if (!rs.next())
+                    throw new DaoException(Type.ERROR, "Form doesn't exist");
+                Form form = new Form();
+                form = fillFormData(rs);
+                form.setQuestions(questionDao.getQuestionsOfForm(id));
+                return form;
             } catch (SQLException e) {
                 throw new DaoException(Type.ERROR, e.getMessage());
             }
@@ -159,6 +185,18 @@ public class FormDaoDbImpl implements FormDao {
             } else {
                 return true;
             }
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
+    
+    private long getIdOfFormFunction(PreparedStatement statement, Form form) {
+        try {
+            statement.setString(1, form.getName());
+            statement.setString(2, form.getAuthor());
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            return rs.getLong("id");
         } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }

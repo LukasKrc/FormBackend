@@ -15,6 +15,7 @@ import lt.ktu.formbackend.model.Form;
 public interface FormDao {
     Long createForm(Form form);
     Form getFormId(long id);
+    Long getIdOfForm(Form form);
     Boolean userHasForm(String formName, String username);
     String getFormAuthor(long id);
     List<Form> getUsersForms(long userId);

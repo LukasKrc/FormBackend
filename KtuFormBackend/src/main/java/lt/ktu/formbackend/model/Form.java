@@ -1,6 +1,5 @@
 package lt.ktu.formbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 
@@ -9,6 +8,7 @@ import java.util.ArrayList;
  * @author Lukas
  */
 public class Form {
+
     private long id;
     private String name;
     private String author;
@@ -24,6 +24,33 @@ public class Form {
     private Boolean showResults;
     private Boolean finished;
     private ArrayList<Question> questions;
+
+    public String hasMandatoryFields() {
+        if (name == null)
+            return "name";
+        if (author == null)
+            return "author";
+        if (date == null)
+            return "date";
+        if (allowAnon == null)
+            return "allowAnon";
+        if (publiclyAvailable == null)
+            return "public";
+        if (showResults == null)
+            return "showResults";
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
+            if (question.getName() == null)
+                return "Question: " + i + ", name";
+            if (question.getType()== null)
+                return "Question: " + i + ", type";
+            if (question.getAllowEmpty()== null)
+                return "Question: " + i + ", allow-empty";
+            if (question.getAllowCustom()== null)
+                return "Question: " + i + ", allow-custom";
+        }
+        return null;
+    }
 
     //<editor-fold desc="Getters, setters">
     public long getId() {
@@ -114,5 +141,5 @@ public class Form {
         this.questions = questions;
     }
     //</editor-fold>
-    
+
 }

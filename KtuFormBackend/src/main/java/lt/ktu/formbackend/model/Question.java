@@ -31,8 +31,18 @@ public class Question {
     private Integer minChoices;
     @JsonProperty("max-choices")
     private Integer maxChoices;
+    private Integer questionNumber;
 
     //<editor-fold desc="Getters, setters">
+
+    public Integer getQuestionNumber() {
+        return questionNumber;
+    }
+
+    public void setQuestionNumber(Integer questionNumber) {
+        this.questionNumber = questionNumber;
+    }
+    
     public String getName() {
         return name;
     }

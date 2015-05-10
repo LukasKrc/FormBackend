@@ -1,5 +1,6 @@
 package lt.ktu.formbackend.rest;
 
+import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -16,7 +17,10 @@ import javax.ws.rs.core.UriInfo;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
 import lt.ktu.formbackend.model.Form;
+import lt.ktu.formbackend.model.Question;
 import lt.ktu.formbackend.utility.DateTimeHandler;
+import lt.ktu.formbackend.utility.JsonSerializer;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -38,7 +42,9 @@ public class FormResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFormById(@PathParam("id") long id) {
         try {
-            return Response.ok(formDao.getFormId(id), MediaType.APPLICATION_JSON).build();
+            Form form = formDao.getFormId(id);
+            String formJsonString = JsonSerializer.serializeForm(form);
+            return Response.ok(formJsonString, MediaType.APPLICATION_JSON).build();
         } catch (DaoException e) {
             return Response.serverError().entity(e.getMessage()).build();
         }

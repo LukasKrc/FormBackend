@@ -16,7 +16,8 @@ public abstract class DateTimeHandler {
         int hour = dateHandler.get(Calendar.HOUR_OF_DAY);
         int minute = dateHandler.get(Calendar.MINUTE);
         int second = dateHandler.get(Calendar.SECOND);
-        return year + month + day + " " + hour + ":" + minute + ":" + second;
+        String monthString = month < 10 ? 0 + "" + month : "" + month;
+        return "" + year + "" + monthString + "" + day + " " + hour + ":" + minute + ":" + second;
     }
     
 }
