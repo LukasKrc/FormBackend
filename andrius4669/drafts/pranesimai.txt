@@ -202,9 +202,9 @@ publikuojamos formos formatas yra labai panašus, tik neturi "date", "id", "auth
 
 atsakymo formatas:
 [
-    { "id": 1 },
-    { "selected": [true, false, true], "custom": ["battletoads"] },
-    { "val": 20 }
+    { "type": "one-choice", "id": 1 },
+    { "type": "multi-choice", "selected": [true, false, true], "custom": ["battletoads"] },
+    { "type": "integer", "val": 20 }
 ]
 > atsakymų objektai:
   > "integer":
