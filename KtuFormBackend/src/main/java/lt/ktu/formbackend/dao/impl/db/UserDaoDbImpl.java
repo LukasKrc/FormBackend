@@ -24,81 +24,82 @@ public class UserDaoDbImpl implements UserDao {
     private static final String USER_GET_ALL_SQL = "SELECT id, username, password, name, surname, company, isCompany FROM Users";
     private static final String USER_CREATE_SQL = "INSERT INTO Users (username, password, name, surname, company, isCompany) values (?, ?, ?, ?, ?, ?)";
     private static final String USER_DELETE_SQL = "DELETE FROM Users WHERE username = ?";
-    
+
     @Override
     public Boolean updateUser(User user, String username) throws DaoException {
         String sql = SQLBuilder.buildUserUpdateSQL(user, username);
-        try {
-            return SqlExecutor.executePreparedStatement(this::updateUserFunction, sql, user);
-        } catch (DaoException e) {
-            throw new DaoException(Type.ERROR, e.getMessage());
-        }
+        return SqlExecutor.executePreparedStatement(this::updateUserFunction, sql, user);
     }
-    
+
     @Override
     public List<User> getAllUsers() throws DaoException {
-        try {
-            return SqlExecutor.executeStatement(this::getUserListFunction);
-        } catch (DaoException e) {
-            System.out.println(e.getMessage());
-            throw new DaoException(Type.ERROR, e.getMessage());
-        }
+        return SqlExecutor.executeStatement(this::getUserListFunction);
     }
 
     @Override
     public User getUserId(Long userId) throws DaoException {
-        try {
-            return SqlExecutor.executePreparedStatement(this::getUserByIdFunction, USER_GET_SQL, userId);
-        } catch (DaoException e) {
-            System.out.println(e.getMessage());
-            throw new DaoException(Type.ERROR, e.getMessage());
-        }
+        return SqlExecutor.executePreparedStatement(this::getUserByIdFunction, USER_GET_SQL, userId);
     }
 
     @Override
     public User getUserUsername(String username) throws DaoException {
-        try {
-            return SqlExecutor.executePreparedStatement(this::getUserByUsernameFunction, USER_GET_USERNAME_SQL, username);
-        } catch (DaoException e) {
-            System.out.println(e.getMessage());
-            throw new DaoException(Type.ERROR, e.getMessage());
-        }
+        return SqlExecutor.executePreparedStatement(this::getUserByUsernameFunction, USER_GET_USERNAME_SQL, username);
     }
-    
+
+    @Override
+    public Boolean userExists(String username) throws DaoException {
+        return SqlExecutor.executePreparedStatement(this::userExists, USER_GET_USERNAME_SQL, username);
+    }
+
     @Override
     public Boolean createUser(User user) throws DaoException {
-        try {
-            return SqlExecutor.executePreparedStatement(this::createUserFunction, USER_CREATE_SQL, user);
-        } catch (DaoException e) {
-            System.out.println(e.getMessage());
-            throw new DaoException(Type.ERROR, e.getMessage());
+        if (!userExists(user.getUsername())) {
+            if (user.hasMandatoryFields() == null) {
+                return SqlExecutor.executePreparedStatement(this::createUserFunction, USER_CREATE_SQL, user);
+            } else {
+                throw new DaoException(Type.ERROR, "Missing mandatory field: " + user.hasMandatoryFields());
+            }
+        } else {
+            throw new DaoException(Type.ERROR, "User with that username already exists");
         }
     }
-    
+
     @Override
     public Boolean deleteUser(String username) throws DaoException {
+        return SqlExecutor.executePreparedStatement(this::deleteUserFunction, USER_DELETE_SQL, username);
+    }
+    
+    private Boolean userExists(PreparedStatement statement, String username) {
         try {
-            return SqlExecutor.executePreparedStatement(this::deleteUserFunction, USER_DELETE_SQL, username);
-        } catch (DaoException e) {
+            statement.setString(1, username);
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            if (rs.next())
+                return true;
+            else
+                return false;
+        } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }
     }
 
     private List<User> getUserListFunction(Statement statement) throws DaoException {
         try {
-            if (statement.execute(USER_GET_ALL_SQL)) {
-                ResultSet rs = statement.getResultSet();
-                List<User> result = new ArrayList<>();
+            statement.execute(USER_GET_ALL_SQL);
+            ResultSet rs = statement.getResultSet();
+            List<User> result = new ArrayList<>();
+            if (rs.next()) {
                 while (rs.next()) {
                     result.add(fillUserData(rs));
                 }
                 return result;
+            } else {
+                throw new DaoException(Type.ERROR, "No users in database");
             }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new DaoException(Type.ERROR, e.getMessage());
         }
-        throw new DaoException(Type.NO_DATA, "No users");
     }
 
     private User getUserByIdFunction(PreparedStatement statement, Long userId) throws DaoException {
@@ -114,7 +115,7 @@ public class UserDaoDbImpl implements UserDao {
             e.printStackTrace();
             throw new DaoException(Type.ERROR, e.getMessage());
         }
-        throw new DaoException(Type.NO_DATA, "No user by id=" + userId);
+        throw new DaoException(Type.NO_DATA, "No user by id: " + userId);
     }
 
     private User getUserByUsernameFunction(PreparedStatement statement, String username) throws DaoException {
@@ -130,31 +131,41 @@ public class UserDaoDbImpl implements UserDao {
             e.printStackTrace();
             throw new DaoException(Type.ERROR, e.getMessage());
         }
-        throw new DaoException(Type.NO_DATA, "No user by username=" + username);
+        throw new DaoException(Type.NO_DATA, "No user by username: " + username);
     }
-    
+
     private Boolean createUserFunction(PreparedStatement statement, User user) {
         try {
-            Integer isCompany = 0;
-            if (user.getIsCompany()) isCompany = 1;
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getPassword());
-            statement.setString(3, user.getName());
-            statement.setString(4, user.getSurname());
-            statement.setString(5, user.getCompany());
-            statement.setInt(6, isCompany);
-            try {
-                statement.execute();
+            if (user.getUsername() != null) {
+                statement.setString(1, user.getUsername());
+            }
+            if (user.getPassword() != null) {
+                statement.setString(2, user.getPassword());
+            }
+            if (user.getName() != null) {
+                statement.setString(3, user.getName());
+            }
+            if (user.getSurname() != null) {
+                statement.setString(4, user.getSurname());
+            }
+            if (user.getCompany() != null) {
+                statement.setString(5, user.getCompany());
+            }
+            if (user.getIsCompany() != null) {
+                Integer isCompany = user.getIsCompany() == true ? 1 : 0;
+                statement.setInt(6, isCompany);
+            }
+            if (statement.executeUpdate() > 0) {
                 return true;
-            } catch (SQLException e) {
-                throw new DaoException(Type.ERROR, e.getMessage());
+            } else {
+                throw new DaoException(Type.ERROR, "User creation failed");
             }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new DaoException(Type.ERROR, e.getMessage());
         }
     }
-    
+
     private Boolean updateUserFunction(PreparedStatement statement, User user) {
         int i = 1;
         try {
@@ -174,22 +185,24 @@ public class UserDaoDbImpl implements UserDao {
             if (user.getSurname() != null) {
                 statement.setString(i++, user.getSurname());
             }
-            if (statement.execute())
+            if (statement.executeUpdate() > 0) {
                 return true;
-            else 
-                return false;
+            } else {
+                throw new DaoException(Type.ERROR, "User update failed");
+            }
         } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }
     }
-    
+
     private Boolean deleteUserFunction(PreparedStatement statement, String username) {
         try {
             statement.setString(1, username);
-            if (statement.execute())
+            if (statement.executeUpdate() > 0) {
                 return true;
-            else
-                return false;
+            } else {
+                throw new DaoException(Type.ERROR, "User deletion failed");
+            }
         } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }
@@ -204,7 +217,9 @@ public class UserDaoDbImpl implements UserDao {
         user.setName(rs.getString("name"));
         user.setSurname(rs.getString("surname"));
         Boolean isCompany = false;
-        if (rs.getInt("isCompany") == 1) isCompany = true;
+        if (rs.getInt("isCompany") == 1) {
+            isCompany = true;
+        }
         user.setIsCompany(isCompany);
         return user;
     }

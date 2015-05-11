@@ -3,7 +3,6 @@ package lt.ktu.formbackend.utility;
 import java.util.ArrayList;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.DaoException.Type;
-import lt.ktu.formbackend.model.Answer;
 import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.Question;
 import org.codehaus.jettison.json.JSONArray;
@@ -15,6 +14,10 @@ import org.codehaus.jettison.json.JSONObject;
  * @author Lukas
  */
 public class JsonSerializer {
+    
+    public static String serializeError(String error) {
+        return "{ \"error\" : \"" + error + "\" }";
+    }
 
     public static String serializeForm(Form form) {
         JSONObject formJson = new JSONObject();

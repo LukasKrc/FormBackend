@@ -23,6 +23,20 @@ public class User {
     private String surname;
     private Boolean isCompany;
     
+    public String hasMandatoryFields() {
+        if (username == null)
+            return "uname";
+        if (password == null)
+            return "pass";
+        if (name == null)
+            return "name";
+        if (surname == null)
+            return "surname";
+        if (isCompany == null)
+            return "isCompany";
+        return null;
+    }
+    
     //<editor-fold desc="Getters, setters">
     public Boolean getIsCompany() {
         return isCompany;

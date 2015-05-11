@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.impl.db.UserDaoDbImpl;
 import lt.ktu.formbackend.model.User;
+import lt.ktu.formbackend.utility.JsonSerializer;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -23,6 +24,7 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * @author Lukas
  */
+
 @Path("/user")
 public class UserResource {
 
@@ -40,7 +42,8 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUser(@PathParam("username") String username) {
         if (username == null) {
-            return Response.serverError().entity("Username can't be blank").build();
+            String errorJson = JsonSerializer.serializeError("Username can't be blank");
+            return Response.serverError().entity(errorJson).build();
         }
         try {
             User user = userDao.getUserUsername(username);
@@ -53,12 +56,14 @@ public class UserResource {
                     userObject.put("surname", user.getSurname());
                 } 
             } catch (JSONException e) {
-                return Response.serverError().entity(e.getMessage()).build();
+                String errorJson = JsonSerializer.serializeError(e.getMessage());
+                return Response.serverError().entity(errorJson).build();
             }
             String userJson = userObject.toString();
-            return Response.ok(userJson/*userDao.getUserUsername(username)*/, MediaType.APPLICATION_JSON).build();
+            return Response.ok(userJson, MediaType.APPLICATION_JSON).build();
         } catch (DaoException e) {
-            return Response.serverError().entity(e.getMessage()).build();
+            String errorJson = JsonSerializer.serializeError(e.getMessage());
+            return Response.serverError().entity(errorJson).build();
         }
     }
 
@@ -70,11 +75,13 @@ public class UserResource {
             try {
                 userDao.createUser(user);
             } catch (DaoException e) {
-                return Response.serverError().entity(e.getMessage()).build();
+                String errorJson = JsonSerializer.serializeError(e.getMessage());
+                return Response.serverError().entity(errorJson).build();
             }
             return Response.ok("/user/" + user.getUsername()).build();
         } else {
-            return Response.serverError().entity("Please provide the user credentials.").build();
+            String errorJson = JsonSerializer.serializeError("Please provide the user credentials");
+            return Response.serverError().entity(errorJson).build();
         }
     }
 
@@ -82,6 +89,10 @@ public class UserResource {
     @Path("/{username}")
     @Consumes("application/json")
     public Response updateUser(@PathParam("username") String username, User user) {
+        if (!userDao.userExists(username)) {
+            String errorJson = JsonSerializer.serializeError("User with username: " + username + " doesn't exist");
+            return Response.serverError().entity(errorJson).build();
+        }
         if (((String) request.getAttribute("username")).equals(username)) {
             userDao.updateUser(user, username);
             return Response.ok().build();
@@ -93,7 +104,10 @@ public class UserResource {
     @DELETE
     @Path("/{username}")
     public Response deleteUser(@PathParam("username") String username) {
-        System.out.println(request.getAttribute("username"));
+        if (!userDao.userExists(username)) {
+            String errorJson = JsonSerializer.serializeError("User with username: " + username + " doesn't exist");
+            return Response.serverError().entity(errorJson).build();
+        }
         if (((String) request.getAttribute("username")).equals(username)) {
             try {
                 userDao.deleteUser(username);

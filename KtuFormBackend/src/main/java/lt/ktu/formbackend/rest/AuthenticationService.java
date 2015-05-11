@@ -11,6 +11,7 @@ import javax.servlet.ServletRequest;
  */
 public class AuthenticationService {
     public boolean authenticate(String authCredentials, ServletRequest request) {
+        request.setAttribute("username", "Lukas");
         if (authCredentials == null)
             return false;
         final String encodedUserPassword = authCredentials.replaceFirst("Basic ", "");
@@ -24,7 +25,6 @@ public class AuthenticationService {
         final StringTokenizer tokenizer = new StringTokenizer(usernameAndPassword, ":");
         final String username = tokenizer.nextToken();
         final String password = tokenizer.nextToken();
-        request.setAttribute("username", username);
         return username.equals("Lukas") && password.equals("password");
     }
 }

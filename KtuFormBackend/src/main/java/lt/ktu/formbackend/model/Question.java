@@ -18,7 +18,7 @@ public class Question {
     private String allowCustom;
     @JsonProperty("allow-ws")
     private Boolean allowWhitespace;
-    @JsonProperty("allow-ns")
+    @JsonProperty("allow-nl")
     private Boolean allowNewLines;
     private ArrayList<String> choices;
     @JsonProperty("allowed-providers")
