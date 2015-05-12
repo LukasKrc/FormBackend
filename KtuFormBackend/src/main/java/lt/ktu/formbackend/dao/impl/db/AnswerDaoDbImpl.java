@@ -20,8 +20,8 @@ import lt.ktu.formbackend.model.Question;
  */
 public class AnswerDaoDbImpl implements AnswerDao {
 
-    private FormDaoDbImpl formDao = new FormDaoDbImpl();
-    private QuestionDaoDbImpl questionDao = new QuestionDaoDbImpl();
+    private FormDaoDbImpl formDao;
+    private QuestionDaoDbImpl questionDao;
 
     private final String FORM_ANSWER_CREATE_SQL = "INSERT INTO FormAnswers (author, form) values (?, ?)";
     private final String ANSWER_CREATE_SQL = "INSERT INTO Answers (type, valueInteger, valueText, oneChoice, customText, multiChoice, questionNumber, customTextArray) values (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -29,93 +29,18 @@ public class AnswerDaoDbImpl implements AnswerDao {
     private final String ANSWER_FORM_GET_SQL = "SELECT Answers.id, type, valueInteger, valueText, oneChoice, customInteger, customText, multiChoice, questionNumber, customIntegerArray, customTextArray FROM ((Answers LEFT JOIN AnswerRelations ON Answers.id = AnswerRelations.answer) LEFT JOIN FormAnswers ON AnswerRelations.formAnswer = FormAnswers.id) LEFT JOIN Forms ON Forms.id = FormAnswers.form WHERE Forms.id = ?";
     private final String ANSWER_FORM_COUNT_SQL = "SELECT Count(*) FROM FormAnswers WHERE form = ?";
 
+    public void initialize() {
+        formDao = DaoFactory.getFormDao();
+        questionDao = DaoFactory.getQuestionDao();
+    }
+    
     @Override
     public ArrayList<AnswerStats> getFormQuestionStats(long formId) {
         ArrayList<Answer> answers = SqlExecutor.executePreparedStatement(this::getAnswersOfFormFunction, ANSWER_FORM_GET_SQL, formId);
         ArrayList<AnswerStats> answerStats = new ArrayList();
         ArrayList<Question> questions = questionDao.getQuestionsOfForm(formId);
         for (int i = 0; i < questions.size(); i++) {
-            AnswerStats answerStat = new AnswerStats();
-            ArrayList<String> choices = new ArrayList();
-            ArrayList<Integer> votes = new ArrayList();
-            Question question = questions.get(i);
-            switch (question.getType()) {
-                case "integer":
-                    for (int x = 0; x < answers.size(); x++) {
-                        if (answers.get(x).getType().equals("integer")) {
-                            if (!choices.contains(Integer.toString(answers.get(x).getValueInteger()))) {
-                                choices.add(Integer.toString(answers.get(x).getValueInteger()));
-                                votes.add(1);
-                            } else {
-                                int choicePosition = choices.indexOf(Integer.toString(answers.get(x).getValueInteger()));
-                                votes.set(choicePosition, votes.get(choicePosition) + 1);
-                            }
-                        }
-                    }
-                    break;
-
-                case "string":
-                    for (int x = 0; x < answers.size(); x++) {
-                        if (answers.get(x).getType().equals("string")) {
-                            if (!choices.contains(answers.get(x).getValueText())) {
-                                choices.add(answers.get(x).getValueText());
-                                votes.add(1);
-                            } else {
-                                int choicePosition = choices.indexOf(answers.get(x).getValueText());
-                                votes.set(choicePosition, votes.get(choicePosition) + 1);
-                            }
-                        }
-                    }
-                    break;
-
-                case "one-choice":
-                    choices.addAll(question.getChoices());
-                    for (int y = 0; y < question.getChoices().size(); votes.add(0), y++);
-                    for (int x = 0; x < answers.size(); x++) {
-                        if (answers.get(x).getType().equals("one-choice")) {
-                            if (answers.get(x).getCustomText() != null) {
-                                if (!choices.contains(answers.get(x).getCustomText())) {
-                                    choices.add(answers.get(x).getCustomText());
-                                    votes.add(1);
-                                } else {
-                                    int choicePosition = choices.indexOf(answers.get(x).getCustomText());
-                                    votes.set(choicePosition, votes.get(choicePosition) + 1);
-                                }
-                            } else {
-                                votes.set(answers.get(x).getOneChoice(), votes.get(answers.get(x).getOneChoice()) + 1);
-                            }
-                        }
-                    }
-                    break;
-
-                case "multi-choice":
-                    choices.addAll(question.getChoices());
-                    for (int y = 0; y < question.getChoices().size(); votes.add(0), y++);
-                    for (int x = 0; x < answers.size(); x++) {
-                        if (answers.get(x).getType().equals("multi-choice")) {
-                            if (answers.get(x).getCustomStringArray() != null) {
-                                for (int j = 0; j < answers.get(x).getCustomStringArray().size(); j++) {
-                                    if (!choices.contains(answers.get(x).getCustomStringArray().get(j))) {
-                                        choices.add(answers.get(x).getCustomStringArray().get(j));
-                                        votes.add(1);
-                                    } else {
-                                        int choicePosition = choices.indexOf(answers.get(x).getCustomStringArray().get(j));
-                                        votes.set(choicePosition, votes.get(choicePosition) + 1);
-                                    }
-                                }
-                            } else {
-                                for (int b = 0; b < answers.get(x).getMultiChoice().size(); b++) {
-                                    if (answers.get(x).getMultiChoice().get(b)) {
-                                        votes.set(b, votes.get(b) + 1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    break;
-            }
-            answerStat.setChoices(choices);
-            answerStat.setVotes(votes);
+            AnswerStats answerStat = new AnswerStats(questions.get(i), answers);
             answerStats.add(answerStat);
         }
         return answerStats;
@@ -266,7 +191,7 @@ public class AnswerDaoDbImpl implements AnswerDao {
                 answer.setType(rs.getString("type"));
                 answer.setValueInteger(rs.getInt("valueInteger"));
                 answer.setValueText(rs.getString("valueText"));
-                answer.setId(rs.getLong("id"));
+                answer.setId(rs.getLong("Answers.id"));
                 answers.add(answer);
             };
             return answers;

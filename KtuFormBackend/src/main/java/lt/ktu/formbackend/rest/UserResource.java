@@ -13,6 +13,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import lt.ktu.formbackend.dao.DaoException;
+import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.UserDaoDbImpl;
 import lt.ktu.formbackend.model.User;
 import lt.ktu.formbackend.utility.JsonSerializer;
@@ -28,14 +29,10 @@ import org.codehaus.jettison.json.JSONObject;
 @Path("/user")
 public class UserResource {
 
-    private UserDaoDbImpl userDao;
+    private UserDaoDbImpl userDao = DaoFactory.getUserDao();
 
     @Context
     HttpServletRequest request;
-
-    public UserResource() {
-        userDao = new UserDaoDbImpl();
-    }
 
     @GET
     @Path("/{username}")

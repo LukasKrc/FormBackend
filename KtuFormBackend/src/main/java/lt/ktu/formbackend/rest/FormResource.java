@@ -1,7 +1,7 @@
 package lt.ktu.formbackend.rest;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -17,13 +17,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import lt.ktu.formbackend.dao.DaoException;
+import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
 import lt.ktu.formbackend.model.Form;
-import lt.ktu.formbackend.model.Question;
 import lt.ktu.formbackend.model.SearchQuery;
 import lt.ktu.formbackend.utility.DateTimeHandler;
+import lt.ktu.formbackend.utility.FormComparator;
 import lt.ktu.formbackend.utility.JsonSerializer;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
@@ -38,28 +38,24 @@ public class FormResource {
     HttpServletRequest request;
     private UriInfo context;
 
-    FormDaoDbImpl formDao = new FormDaoDbImpl();
+    private FormDaoDbImpl formDao = DaoFactory.getFormDao();
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response searchForms(@QueryParam("q") String query, @QueryParam("tags") String tags,
             @QueryParam("sort") String sort, @QueryParam("limit") int limit,
             @QueryParam("skip") int skip, @QueryParam("order") String order,
             @QueryParam("author") String author, @QueryParam("allow-anon") boolean allowAnon,
             @QueryParam("finished") boolean finished) {
 
-        SearchQuery searchQuery = new SearchQuery();
-        searchQuery.setAllowAnon(allowAnon);
-        searchQuery.setAuthor(author);
-        searchQuery.setFinished(finished);
-        searchQuery.setLimit(limit);
-        searchQuery.setOrder(order);
-        searchQuery.setQuery(query);
-        searchQuery.setSkip(skip);
-        searchQuery.setSort(sort);
-        ArrayList<String> tagsArray = new ArrayList();
-        tagsArray.addAll(Arrays.asList(tags.split(",")));
-        searchQuery.setTags(tagsArray);
-        return Response.serverError().entity("Searchas dar neveikia :(" + query + tags + sort + limit + skip + order + author + allowAnon + finished).build();
+        SearchQuery searchQuery = new SearchQuery(allowAnon, author, finished, limit, order, query, skip, sort, tags);
+//        try {
+        ArrayList<Form> forms = formDao.searchForms(searchQuery);
+        Collections.sort(forms, new FormComparator(sort));
+            return Response.ok(forms).build();
+//        } catch (DaoException e) {
+//            return Response.serverError().entity(e.getMessage()).build();
+//        }
     }
 
     @GET

@@ -1,6 +1,7 @@
 package lt.ktu.formbackend.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -16,6 +17,21 @@ public class SearchQuery {
     private String author;
     private Boolean allowAnon;
     private Boolean finished;
+    
+    public SearchQuery(Boolean allowAnon, String author, Boolean finished, int limit, String order, String query, int skip, String sort, String tags) {
+        this.allowAnon = allowAnon;
+        this.author = author;
+        this.finished = finished;
+        this.limit = limit;
+        this.order = order;
+        this.query = query;
+        this.skip = skip;
+        this.sort = sort;
+        ArrayList<String> tagsArray = new ArrayList();
+        if (tags != null)
+            tagsArray.addAll(Arrays.asList(tags.split(",")));
+        this.tags = tagsArray;
+    }
 
     //<editor-fold desc="Getters and setters">
     public String getQuery() {

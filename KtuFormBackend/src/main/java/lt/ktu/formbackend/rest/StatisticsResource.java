@@ -7,6 +7,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.impl.db.AnswerDaoDbImpl;
+import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
 import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.FormStats;
@@ -20,8 +21,8 @@ import lt.ktu.formbackend.utility.JsonSerializer;
 @Path("/stats")
 public class StatisticsResource {
 
-    private AnswerDaoDbImpl answerDao = new AnswerDaoDbImpl();
-    private FormDaoDbImpl formDao = new FormDaoDbImpl();
+    private AnswerDaoDbImpl answerDao = DaoFactory.getAnswerDao();
+    private FormDaoDbImpl formDao = DaoFactory.getFormDao();
 
     @GET
     @Path("/{username}/{formName}")

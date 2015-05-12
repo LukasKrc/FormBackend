@@ -10,6 +10,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.impl.db.AnswerDaoDbImpl;
+import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
 import lt.ktu.formbackend.dao.impl.db.UserDaoDbImpl;
 import lt.ktu.formbackend.model.AnswerContainer;
@@ -28,9 +29,9 @@ public class AnswerResource {
     @Context
     private HttpServletRequest request;
 
-    private AnswerDaoDbImpl answerDao = new AnswerDaoDbImpl();
-    private FormDaoDbImpl formDao = new FormDaoDbImpl();
-    private UserDaoDbImpl userDao = new UserDaoDbImpl();
+    private AnswerDaoDbImpl answerDao = DaoFactory.getAnswerDao();
+    private FormDaoDbImpl formDao = DaoFactory.getFormDao();
+    private UserDaoDbImpl userDao = DaoFactory.getUserDao();
 
     @POST
     @Path("/{username}/{formName}")

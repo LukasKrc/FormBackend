@@ -24,6 +24,7 @@ public class Form {
     private Boolean showResults;
     private Boolean finished;
     private ArrayList<Question> questions;
+    private int votes;
 
     public String hasMandatoryFields() {
         if (name == null)
@@ -53,6 +54,15 @@ public class Form {
     }
 
     //<editor-fold desc="Getters, setters">
+
+    public int getVotes() {
+        return votes;
+    }
+
+    public void setVotes(int votes) {
+        this.votes = votes;
+    }
+    
     public long getId() {
         return id;
     }
