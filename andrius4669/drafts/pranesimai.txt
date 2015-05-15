@@ -10,10 +10,12 @@ REST standartas nusako, kad kiekviena serverio operacija gali būti apibrėžta 
 
 mes naudosime HTTP protokolą komunikacijai, ir perduosime duomenis JSON formatu.
 
-kai kurios funkcijos gali reikalauti prisijungimo, tam naudosime http://en.wikipedia.org/wiki/Basic_access_authentication
+beveik visos funkcijos (išskyrus /user POST metodą, kadangi jis yra skirtas naudotojų kūrimui), reikalauja prisijungimo
+tam naudosime http://en.wikipedia.org/wiki/Basic_access_authentication
 klientas siūs naudotojo vardą ir slaptažodį kiekvienai užklausai.
 kadangi HTTP BASIC AUTH metodu siunčiami slaptažodžiai nėra šifruojami, rekomenduojama naudoti HTTPS
 anoniminiai vartotojai naudos vardą "Anonymous", ir tuščią slaptažodį
+jei reikia prisijungimo dialogo, rekomenduojama naudoti /user/naudotojovardas metodą GET (jis reikalauja HTTP BASIC AUTH, ir grąžina informaciją apie naudotoją)
 
 programavimui galima naudoti Jersey ( https://jersey.java.net/ ),
 RESTlet framework'ą ( http://restlet.com/products/restlet-framework/ ) arba praktiškai bet ką kas veikia (svarbu kad kiti projekto nariai būtų su tuo susipažinę)
@@ -23,6 +25,7 @@ naudojamos užklausos:
 > /user
   > metodas POST
     > priregistruoja naują vartotoją
+    > nereikalauja prisijungimo duomenų
     > pateikiami duomenys (JSON formatu)
       - uname    - naudotojo vardas (string)
       - pass     - slaptažodis (string)
