@@ -6,7 +6,6 @@
 package lt.ktu.formbackend.dao;
 
 import java.util.ArrayList;
-import java.util.List;
 import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.SearchQuery;
 
@@ -23,4 +22,5 @@ public interface FormDao {
     ArrayList<Form> getUsersForms(long userId);
     ArrayList<Form> searchForms(SearchQuery query);
     Boolean deleteForm(long id);
+    Boolean updateForm(long id, Form form);
 }

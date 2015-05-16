@@ -6,6 +6,7 @@
 package lt.ktu.formbackend.dao;
 
 import java.util.ArrayList;
+import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.Question;
 
 /**
@@ -15,4 +16,5 @@ import lt.ktu.formbackend.model.Question;
 public interface QuestionDao {
     public long createQuestion(Question question, long formId);
     public ArrayList<Question> getQuestionsOfForm(long formId);
+    public boolean updateQuestionsOfForm(Form form);
 }

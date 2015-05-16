@@ -8,6 +8,7 @@ import java.util.ArrayList;
  * @author Lukas
  */
 public class Question {
+    private long id;
     private String name;
     @JsonProperty("desc")
     private String description;
@@ -34,6 +35,13 @@ public class Question {
     private Integer questionNumber;
 
     //<editor-fold desc="Getters, setters">
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public Integer getQuestionNumber() {
         return questionNumber;

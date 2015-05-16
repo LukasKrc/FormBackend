@@ -16,4 +16,5 @@ public interface UserDao {
     Boolean updateUser(User user, String username) throws DaoException;
     Boolean deleteUser(String username)throws DaoException;
     Boolean userExists(String username) throws DaoException;
+    Boolean userFinishedForm(String username, long formId) throws DaoException;
 }

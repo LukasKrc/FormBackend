@@ -1,5 +1,6 @@
 package lt.ktu.formbackend.dao.impl.db;
 
+//<editor-fold desc="Imports">
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,11 +9,17 @@ import java.util.Arrays;
 import lt.ktu.formbackend.dao.AnswerDao;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.DaoException.Type;
+import lt.ktu.formbackend.dao.FormDao;
+import lt.ktu.formbackend.dao.QuestionDao;
+import lt.ktu.formbackend.dao.UserDao;
 import lt.ktu.formbackend.model.Answer;
 import lt.ktu.formbackend.model.AnswerRelation;
 import lt.ktu.formbackend.model.AnswerStats;
+import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.FormAnswer;
+import lt.ktu.formbackend.model.FormStats;
 import lt.ktu.formbackend.model.Question;
+//</editor-fold>
 
 /**
  *
@@ -20,8 +27,9 @@ import lt.ktu.formbackend.model.Question;
  */
 public class AnswerDaoDbImpl implements AnswerDao {
 
-    private FormDaoDbImpl formDao;
-    private QuestionDaoDbImpl questionDao;
+    private FormDao formDao;
+    private QuestionDao questionDao;
+    private UserDao userDao;
 
     private final String FORM_ANSWER_CREATE_SQL = "INSERT INTO FormAnswers (author, form) values (?, ?)";
     private final String ANSWER_CREATE_SQL = "INSERT INTO Answers (type, valueInteger, valueText, oneChoice, customText, multiChoice, questionNumber, customTextArray) values (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -32,6 +40,7 @@ public class AnswerDaoDbImpl implements AnswerDao {
     public void initialize() {
         formDao = DaoFactory.getFormDao();
         questionDao = DaoFactory.getQuestionDao();
+        userDao = DaoFactory.getUserDao();
     }
     
     @Override
@@ -44,6 +53,22 @@ public class AnswerDaoDbImpl implements AnswerDao {
             answerStats.add(answerStat);
         }
         return answerStats;
+    }
+    
+    @Override
+    public ArrayList<FormStats> getUserFormStats(String username) {
+        ArrayList<FormStats> formStats = new ArrayList();
+        ArrayList<Form> forms = formDao.getUsersForms(userDao.getUserUsername(username).getId());
+        ArrayList<Long> formIds = new ArrayList();
+        for (int i = 0; i < forms.size(); formIds.add(forms.get(i).getId()), i++);
+        for (int i = 0; i < formIds.size(); i++) {
+            FormStats formStat = new FormStats();
+            formStat.setAnswers(getFormQuestionStats(formIds.get(i)));
+            formStat.setVotes(getVotesOfForm(formIds.get(i)));
+            formStat.setFormName(forms.get(i).getName());
+            formStats.add(formStat);
+        }
+        return formStats;
     }
 
     @Override
@@ -191,7 +216,7 @@ public class AnswerDaoDbImpl implements AnswerDao {
                 answer.setType(rs.getString("type"));
                 answer.setValueInteger(rs.getInt("valueInteger"));
                 answer.setValueText(rs.getString("valueText"));
-                answer.setId(rs.getLong("Answers.id"));
+                answer.setId(rs.getLong("id"));
                 answers.add(answer);
             };
             return answers;

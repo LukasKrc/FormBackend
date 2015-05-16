@@ -36,7 +36,6 @@ public class FormResource {
 
     @Context
     HttpServletRequest request;
-    private UriInfo context;
 
     private FormDaoDbImpl formDao = DaoFactory.getFormDao();
 
@@ -49,9 +48,17 @@ public class FormResource {
             @QueryParam("finished") boolean finished) {
 
         SearchQuery searchQuery = new SearchQuery(allowAnon, author, finished, limit, order, query, skip, sort, tags);
+        if (searchQuery.hasMandatoryFields() != null) {
+            return Response.serverError().entity("Search query is missing field: " + searchQuery.hasMandatoryFields()).build();
+        }
 //        try {
         ArrayList<Form> forms = formDao.searchForms(searchQuery);
-        Collections.sort(forms, new FormComparator(sort));
+        if (skip > forms.size() || limit == 0)
+            return Response.serverError().entity("Skip parameter is too high or limit is not provided").build();
+        Collections.sort(forms, new FormComparator(sort, order));
+        forms = new ArrayList(forms.subList(skip, forms.size()));
+        if (forms.size() > limit)
+            forms = new ArrayList(forms.subList(0, limit));
             return Response.ok(forms).build();
 //        } catch (DaoException e) {
 //            return Response.serverError().entity(e.getMessage()).build();
@@ -118,6 +125,14 @@ public class FormResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putForm(@PathParam("id") long id, Form form) {
-        return Response.serverError().entity("Not implemented yet.").build();
+        System.out.println("Resource");
+        try {
+        if (formDao.updateForm(id, form))
+            return Response.ok().build();
+        else 
+            return Response.serverError().entity("Form update failed").build();
+        } catch (DaoException e) {
+            return Response.serverError().entity(e.getMessage()).build();
+        }
     }
 }

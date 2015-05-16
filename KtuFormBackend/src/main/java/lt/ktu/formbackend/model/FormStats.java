@@ -8,12 +8,21 @@ import java.util.ArrayList;
  * @author Lukas
  */
 public class FormStats {
+    private String formName;
     @JsonProperty("numvotes")
     private int votes;
     @JsonProperty("answers")
     ArrayList<AnswerStats> answers;
 
     //<editor-fold desc="Getters and setters">
+    public String getFormName() {
+        return formName;
+    }
+
+    public void setFormName(String formName) {
+        this.formName = formName;
+    }
+    
     public int getVotes() {
         return votes;
     }

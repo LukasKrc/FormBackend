@@ -1,16 +1,21 @@
 package lt.ktu.formbackend.dao.impl.db;
 
+//<editor-fold desc="Imports">
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import lt.ktu.formbackend.dao.AnswerDao;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.DaoException.Type;
 import lt.ktu.formbackend.dao.FormDao;
+import lt.ktu.formbackend.dao.QuestionDao;
+import lt.ktu.formbackend.dao.UserDao;
 import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.Question;
 import lt.ktu.formbackend.model.SearchQuery;
+//</editor-fold>
 
 /**
  *
@@ -18,21 +23,36 @@ import lt.ktu.formbackend.model.SearchQuery;
  */
 public class FormDaoDbImpl implements FormDao {
 
+    private HttpServletRequest request;
+    
     private static final String FORM_CREATE_SQL = "INSERT INTO Forms (name, author, desc, date, allowAnon, public, showResults) values (?, ?, ?, ?, ?, ?, ?)";
     private static final String FORM_GET_USER_NAME_SQL = "SELECT id, name, author, desc, date, allowAnon, public, showResults FROM Forms WHERE author = ? AND name = ?";
     private static final String FORM_GET_ID_SQL = "SELECT id, name, author, desc, date, allowAnon, public, showResults FROM Forms WHERE id = ?";
     private static final String FORM_DELETE_SQL = "DELETE FROM Forms WHERE id = ?";
     private static final String FORM_GET_USER_NAME_ID_SQL = "SELECT author FROM Forms WHERE id = ?";
     private static final String FORM_GET_ID_BY_USER_NAME_SQL = "SELECT id FROM Forms WHERE name = ? AND author = ?";
-    private static final String FORM_SEARCH_SQL = "SELECT Forms.id, name, author, desc, date, allowAnon, public, showResults FROM (Forms LEFT JOIN TagRelations ON Forms.id = TagRelations.form) LEFT JOIN Tags ON Tags.id = TagRelations.tag WHERE Forms.name LIKE ? OR Tags.tag LIKE ?";
+    private static final String FORM_SEARCH_SQL = "SELECT Forms.id, name, author, desc, date, allowAnon, public, showResults FROM (Forms LEFT JOIN TagRelations ON Forms.id = TagRelations.form) LEFT JOIN Tags ON Tags.id = TagRelations.tag WHERE ((Forms.name LIKE ? AND ? = 1) OR (Tags.tag LIKE ? AND ? = 1)) AND (Forms.author = ? OR ? = 1) AND Forms.allowAnon = ?";
     private static final String FORM_GET_TAGS_SQL = "SELECT Tags.tag FROM (Forms LEFT JOIN TagRelations ON Forms.id = TagRelations.form) LEFT JOIN Tags ON Tags.id = TagRelations.tag WHERE Forms.id = ?";
-    
-    private AnswerDaoDbImpl answerDao;
-    private QuestionDaoDbImpl questionDao;
+    private static final String FORM_GET_IDS_USER_SQL = "SELECT Forms.id FROM Forms LEFT JOIN Users ON Forms.author = Users.username WHERE Users.id = ?";
 
+    private AnswerDao answerDao;
+    private QuestionDao questionDao;
+    private UserDao userDao;
+
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
+    }
+    
     public void initialize() {
         answerDao = DaoFactory.getAnswerDao();
         questionDao = DaoFactory.getQuestionDao();
+        userDao = DaoFactory.getUserDao();
+    }
+
+    @Override
+    public Boolean updateForm(long id, Form form) {
+        form.setId(id);
+        return SqlExecutor.executePreparedStatement(this::updateFormFunction, SQLBuilder.buildFormUpdateSQL(form), form);
     }
 
     @Override
@@ -87,11 +107,69 @@ public class FormDaoDbImpl implements FormDao {
 
     @Override
     public ArrayList<Form> getUsersForms(long userId) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ArrayList<Form> forms = new ArrayList();
+        ArrayList<Long> ids = getUsersFormIds(userId);
+        for (int i = 0; i < ids.size(); i++) {
+            forms.add(getFormId(ids.get(i)));
+        }
+        return forms;
+    }
+
+    private ArrayList<Long> getUsersFormIds(long userId) {
+        return SqlExecutor.executePreparedStatement(this::getUsersFormIdsFunction, FORM_GET_IDS_USER_SQL, userId);
     }
 
     private ArrayList<String> getTagsOfForm(long formId) {
         return SqlExecutor.executePreparedStatement(this::getTagsOfFormFunction, FORM_GET_TAGS_SQL, formId);
+    }
+
+    private Boolean updateFormFunction(PreparedStatement statement, Form form) {
+        questionDao.updateQuestionsOfForm(form);
+        try {
+            int i = 1;
+            if (form.getAllowAnon() != null) {
+                Integer allowAnon = form.getAllowAnon() ? 1 : 0;
+                statement.setInt(i++, allowAnon);
+            }
+            if (form.getPubliclyAvailable() != null) {
+                Integer publiclyAvailable = form.getPubliclyAvailable() ? 1 : 0;
+                statement.setInt(i++, publiclyAvailable);
+            }
+            if (form.getShowResults() != null) {
+                Integer showResults = form.getShowResults() ? 1 : 0;
+                statement.setInt(i++, showResults);
+            }
+            if (form.getDescription() != null) {
+                statement.setString(i++, form.getDescription());
+            }
+            if (form.getName() != null) {
+                statement.setString(i++, form.getName());
+            }
+            statement.setLong(i, form.getId());
+            System.out.println(i);
+            if (statement.executeUpdate() > 0) {
+                return true;
+            } else {
+                throw new DaoException(Type.ERROR, "Form update failed");
+            }
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
+    
+    private ArrayList<Long> getUsersFormIdsFunction(PreparedStatement statement, long userId) {
+        ArrayList<Long> formIds = new ArrayList();
+        try {
+            statement.setLong(1, userId);
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            while (rs.next()) {
+                formIds.add(rs.getLong("id"));
+            }
+            return formIds;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
     }
 
     private ArrayList<String> getTagsOfFormFunction(PreparedStatement statement, long formId) {
@@ -118,10 +196,35 @@ public class FormDaoDbImpl implements FormDao {
             throw new DaoException(Type.ERROR, "Search query is empty.");
         }
         try {
-            for (int i = 0; i < query.getTags().size(); i++) {
+            for (int i = 0; i < query.getTags().size() || (query.getTags().size() == 0 && i < 1); i++) {
                 String namePattern = "%" + query.getQuery() + "%";
                 statement.setString(1, namePattern);
-                statement.setString(2, query.getTags().get(i));
+                if (query.getQuery().equals("")) {
+                    statement.setInt(2, 0);
+                } else {
+                    statement.setInt(2, 1);
+                }
+                if (query.getTags() == null || query.getTags().size() == 0) {
+                    statement.setString(3, "%%");
+                    statement.setInt(4, 0);
+                } else {
+                    String tagPattern = "%" + query.getTags().get(i) + "%";
+                    statement.setString(3, tagPattern);
+                    statement.setInt(4, 1);
+                }
+                if (query.getAuthor() != null && !query.getAuthor().equals("")) {
+                    statement.setString(5, query.getAuthor());
+                } else {
+                    statement.setString(5, "");
+                    statement.setInt(6, 1);
+                }
+                int allowAnon = query.getAllowAnon() == true ? 1 : 0;
+                statement.setInt(7, allowAnon);
+                if (query.getQuery().equals("") && query.getTags().size() == 0) {
+                    statement.setInt(2, 1);
+                    statement.setInt(4, 1);
+                }
+                //((Forms.name LIKE ? AND ? = 1) OR (Tags.tag LIKE ? AND ? = 1)) AND (Forms.author = ? OR ? = 1) AND Forms.allowAnon = ?";
                 statement.execute();
                 ResultSet rs = statement.getResultSet();
                 ArrayList<Form> formsResult = fillFormArray(rs);
@@ -134,9 +237,7 @@ public class FormDaoDbImpl implements FormDao {
                     }
                     if (!contains) {
                         Form form = formsResult.get(y);
-                        answerDao.getVotesOfForm(846165);
                         form.setTags(getTagsOfForm(form.getId()));
-                        int votes = answerDao.getVotesOfForm(form.getId());
                         form.setVotes(answerDao.getVotesOfForm(form.getId()));
                         forms.add(formsResult.get(y));
                     }
@@ -265,6 +366,7 @@ public class FormDaoDbImpl implements FormDao {
 //        form.setFinished(finished);
         form.setId(rs.getInt("id"));
         form.setName(rs.getString("name"));
+        form.setFinished(userDao.userFinishedForm((String)request.getAttribute("username"), form.getId()));
         boolean pAvailable = rs.getInt("public") == 1 ? true : false;
         form.setPubliclyAvailable(pAvailable);
         boolean showResults = rs.getInt("showResults") == 1 ? true : false;

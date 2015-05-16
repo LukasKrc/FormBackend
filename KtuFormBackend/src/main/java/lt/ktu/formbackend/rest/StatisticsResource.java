@@ -1,5 +1,7 @@
 package lt.ktu.formbackend.rest;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -17,12 +19,24 @@ import lt.ktu.formbackend.utility.JsonSerializer;
  *
  * @author Lukas
  */
-
 @Path("/stats")
 public class StatisticsResource {
 
     private AnswerDaoDbImpl answerDao = DaoFactory.getAnswerDao();
     private FormDaoDbImpl formDao = DaoFactory.getFormDao();
+
+    @GET
+    @Path("/{username}")
+    public Response getUserFormStats(@PathParam("username") String username) {
+        try {
+            ArrayList<FormStats> statArray = new ArrayList();
+            statArray = answerDao.getUserFormStats(username);
+            return Response.ok(statArray, MediaType.APPLICATION_JSON).build();
+        } catch (DaoException e) {
+            String errorJson = JsonSerializer.serializeError(e.getMessage());
+            return Response.serverError().entity(errorJson).build();
+        }
+    }
 
     @GET
     @Path("/{username}/{formName}")

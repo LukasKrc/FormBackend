@@ -1,17 +1,18 @@
 package lt.ktu.formbackend.dao.impl.db;
 
+//<editor-fold desc="Imports">
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.DaoException.Type;
 import lt.ktu.formbackend.dao.UserDao;
-
+import lt.ktu.formbackend.model.FormAnswer;
 import lt.ktu.formbackend.model.User;
+//</editor-fold>
 
 /**
  *
@@ -24,7 +25,16 @@ public class UserDaoDbImpl implements UserDao {
     private static final String USER_GET_ALL_SQL = "SELECT id, username, password, name, surname, company, isCompany FROM Users";
     private static final String USER_CREATE_SQL = "INSERT INTO Users (username, password, name, surname, company, isCompany) values (?, ?, ?, ?, ?, ?)";
     private static final String USER_DELETE_SQL = "DELETE FROM Users WHERE username = ?";
-
+    private static final String USER_FINISHED_FORM = "SELECT Forms.id FROM (Users LEFT JOIN FormAnswers on Users.username = FormAnswers.author) LEFT JOIN Forms ON Forms.id = FormAnswers.form WHERE Forms.id = ? AND Users.username = ?";
+            
+    @Override
+    public Boolean userFinishedForm(String username, long formId) throws DaoException {
+        FormAnswer formAnswer = new FormAnswer();
+        formAnswer.setAuthor(username);
+        formAnswer.setForm(formId);
+        return SqlExecutor.executePreparedStatement(this::userFinishedFormFunction, USER_FINISHED_FORM, formAnswer);
+    }
+    
     @Override
     public Boolean updateUser(User user, String username) throws DaoException {
         String sql = SQLBuilder.buildUserUpdateSQL(user, username);
@@ -67,6 +77,21 @@ public class UserDaoDbImpl implements UserDao {
     @Override
     public Boolean deleteUser(String username) throws DaoException {
         return SqlExecutor.executePreparedStatement(this::deleteUserFunction, USER_DELETE_SQL, username);
+    }
+    
+    private Boolean userFinishedFormFunction(PreparedStatement statement, FormAnswer answer) {
+        try {
+            statement.setLong(1, answer.getForm());
+            statement.setString(2, answer.getAuthor());
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            if (rs.next())
+                return true;
+            else 
+                return false;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
     }
     
     private Boolean userExists(PreparedStatement statement, String username) {

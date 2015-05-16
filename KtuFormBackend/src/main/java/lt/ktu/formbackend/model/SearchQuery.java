@@ -28,9 +28,23 @@ public class SearchQuery {
         this.skip = skip;
         this.sort = sort;
         ArrayList<String> tagsArray = new ArrayList();
-        if (tags != null)
+        if (tags != null && !tags.equals(""))
             tagsArray.addAll(Arrays.asList(tags.split(",")));
         this.tags = tagsArray;
+    }
+    
+    public String hasMandatoryFields() {
+        if (query == null)
+            return "query";
+        if (sort == null)
+            return "sort";
+        if (order == null)
+            return "order";
+        if (author == null)
+            return "author";
+        if (allowAnon == null)
+            return "allowAnon";
+        return null;
     }
 
     //<editor-fold desc="Getters and setters">
