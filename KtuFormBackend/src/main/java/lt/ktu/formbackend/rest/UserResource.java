@@ -101,8 +101,10 @@ public class UserResource {
             userDao.updateUser(user, username);
             return Response.ok().build();
         }
-        else 
-            return Response.serverError().entity("You can only update your own account").build();
+        else {
+            String errorJson = JsonSerializer.serializeError("You can only update your own account");
+            return Response.serverError().entity(errorJson).build();
+        }
     }
     
     @DELETE
@@ -120,7 +122,8 @@ public class UserResource {
                 return Response.serverError().entity(e.getMessage()).build();
             }
         } else {
-            return Response.serverError().entity("You can only delete your own accout").build();
+            String errorJson = JsonSerializer.serializeError("You can only delete your own account");
+            return Response.serverError().entity(errorJson).build();
         }
     }
 }

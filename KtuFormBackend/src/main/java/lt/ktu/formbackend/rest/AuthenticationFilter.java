@@ -23,14 +23,6 @@ public class AuthenticationFilter implements javax.servlet.Filter{
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         
-        /*
-            Visiems URI išskyrus /user/ reikalingas prisijungimas. Kad būtų 
-            galima kurti vartotojus neprisijungus naudojamas šitas filtras, 
-            tačiau kai jis veikia betkoks /user/ URI panaudojamas sukelia 
-            exceptiona ir nors grąžina gera atsakymą, atsakymo kodas 500.
-        
-        */
-        
         if (request instanceof HttpServletRequest) {
             DaoFactory.getFormDao().setRequest((HttpServletRequest)request);
             String path = ((HttpServletRequest) request).getRequestURI();
