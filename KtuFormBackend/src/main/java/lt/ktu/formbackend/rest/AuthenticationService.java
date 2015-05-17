@@ -13,12 +13,15 @@ import lt.ktu.formbackend.model.User;
  * @author Lukas
  */
 public class AuthenticationService {
-    
+
     private UserDao userDao = DaoFactory.getUserDao();
-    
+
     public boolean authenticate(String authCredentials, ServletRequest request) {
-        if (authCredentials == null)
+        if (authCredentials == null) {
             return false;
+        }
+        System.out.println(authCredentials);
+        System.out.println(authCredentials);
         final String encodedUserPassword = authCredentials.replaceFirst("Basic ", "");
         String usernameAndPassword = null;
         try {
@@ -27,10 +30,20 @@ public class AuthenticationService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println(usernameAndPassword);
         final StringTokenizer tokenizer = new StringTokenizer(usernameAndPassword, ":");
         final String username = tokenizer.nextToken();
+        if (username.equals("Anonymous")) {
+            request.setAttribute("username", "Anonymous");
+            return true;
+        }
         final String password = tokenizer.nextToken();
         User user = userDao.getUserUsername(username);
-        return password.equals(user.getPassword());
+        if (password.equals(user.getPassword())) {
+            request.setAttribute("username", user.getUsername());
+            return true;
+        } else {
+            return false;
+        }
     }
 }

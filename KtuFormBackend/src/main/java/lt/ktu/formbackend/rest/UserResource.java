@@ -37,6 +37,7 @@ public class UserResource {
     @POST
     @Path("/test")
     public Response testJson(String request) {
+        System.out.println((String)this.request.getAttribute("username"));
         System.out.println(request);
         return Response.serverError().entity(request).build();
     }
@@ -49,7 +50,7 @@ public class UserResource {
             String errorJson = JsonSerializer.serializeError("Username can't be blank");
             return Response.serverError().entity(errorJson).build();
         }
-//        try {
+        try {
             User user = userDao.getUserUsername(username);
             JSONObject userObject = new JSONObject();
             try {
@@ -65,10 +66,10 @@ public class UserResource {
             }
             String userJson = userObject.toString();
             return Response.ok(userJson, MediaType.APPLICATION_JSON).build();
-//        } catch (DaoException e) {
-//            String errorJson = JsonSerializer.serializeError(e.getMessage());
-//            return Response.serverError().entity(errorJson).build();
-//        }
+        } catch (DaoException e) {
+            String errorJson = JsonSerializer.serializeError(e.getMessage());
+            return Response.serverError().entity(errorJson).build();
+        }
     }
 
     @POST
