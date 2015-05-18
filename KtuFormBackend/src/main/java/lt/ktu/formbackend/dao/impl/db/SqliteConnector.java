@@ -1,36 +1,47 @@
 package lt.ktu.formbackend.dao.impl.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import javax.tools.FileObject;
 
 /**
  *
- * @author Lukas
+ * @author Justas
  */
-public class SqliteConnector {
-    
-    private static DataSource dataSource;
-
-    static {
-        Context initCtx;
-        try {
-            initCtx = new InitialContext();
-            dataSource = (DataSource) initCtx.lookup("java:comp/env/jdbc/Database");
-            System.out.println(dataSource.toString() + "Database info __________________");
-        } catch (NamingException e) {
-            e.printStackTrace();
-
+public class SqliteConnector
+{
+    public static Connection getConnection() throws SQLException, ClassNotFoundException
+    {
+        try
+        {
+            Class.forName("org.sqlite.JDBC");
+            
+            // duombaze turi buti {tomcat_dir}/database/database.db
+            String dbURL = "jdbc:sqlite:../database/database.db";
+            Connection conn = DriverManager.getConnection(dbURL);
+            if (conn != null)
+            {
+                System.out.println("Connected to the database");
+                
+                DatabaseMetaData dm = (DatabaseMetaData) conn.getMetaData();
+                System.out.println("Driver name: " + dm.getDriverName());
+                System.out.println("Driver version: " + dm.getDriverVersion());
+                System.out.println("Product name: " + dm.getDatabaseProductName());
+                System.out.println("Product version: " + dm.getDatabaseProductVersion());
+                
+                return conn;
+            }
+        } catch (SQLException ex)
+        {
+            ex.printStackTrace();
         }
-    }
-
-    public static Connection getConnection() throws SQLException {
-        if (dataSource != null) {
-            return dataSource.getConnection();
-        }
+      
         return null;
     }
 }

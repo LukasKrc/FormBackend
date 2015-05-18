@@ -18,6 +18,6 @@ public class RootResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response rootPage() {
-        return Response.serverError().entity("{ \"error\" : \" Root URL doesn't do anything\" }").build();
+        return Response.serverError().entity("{ \"error\" : \"rRoot URL doesn't do anything\" }").build();
     }
 }
