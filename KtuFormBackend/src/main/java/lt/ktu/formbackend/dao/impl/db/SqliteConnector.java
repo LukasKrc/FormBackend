@@ -16,14 +16,16 @@ import javax.tools.FileObject;
  */
 public class SqliteConnector
 {
-    public static Connection getConnection() throws SQLException, ClassNotFoundException
+    public static Connection getConnection()
     {
+        System.out.println("Connecting to database...");
         try
         {
             Class.forName("org.sqlite.JDBC");
             
             // duombaze turi buti {tomcat_dir}/database/database.db
             String dbURL = "jdbc:sqlite:../database/database.db";
+            
             Connection conn = DriverManager.getConnection(dbURL);
             if (conn != null)
             {
@@ -36,8 +38,11 @@ public class SqliteConnector
                 System.out.println("Product version: " + dm.getDatabaseProductVersion());
                 
                 return conn;
+            } else
+            {
+                System.out.println("Failed to connect...");
             }
-        } catch (SQLException ex)
+        } catch (ClassNotFoundException | SQLException ex)
         {
             ex.printStackTrace();
         }

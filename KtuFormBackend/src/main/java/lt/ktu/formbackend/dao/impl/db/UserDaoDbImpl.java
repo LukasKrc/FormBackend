@@ -12,6 +12,7 @@ import lt.ktu.formbackend.dao.DaoException.Type;
 import lt.ktu.formbackend.dao.UserDao;
 import lt.ktu.formbackend.model.FormAnswer;
 import lt.ktu.formbackend.model.User;
+import lt.ktu.formbackend.rest.AuthenticationService;
 //</editor-fold>
 
 /**
@@ -159,13 +160,17 @@ public class UserDaoDbImpl implements UserDao {
         throw new DaoException(Type.NO_DATA, "No user by username: " + username);
     }
 
-    private Boolean createUserFunction(PreparedStatement statement, User user) {
+    private Boolean createUserFunction(PreparedStatement statement, User user)
+    {
         try {
             if (user.getUsername() != null) {
                 statement.setString(1, user.getUsername());
             }
             if (user.getPassword() != null) {
-                statement.setString(2, user.getPassword());
+                AuthenticationService as = new AuthenticationService();
+                String encodedPassword = as.md5Digest( user.getPassword() );
+                
+                statement.setString(2, encodedPassword);
             }
             if (user.getName() != null) {
                 statement.setString(3, user.getName());
@@ -193,6 +198,7 @@ public class UserDaoDbImpl implements UserDao {
 
     private Boolean updateUserFunction(PreparedStatement statement, User user) {
         int i = 1;
+        
         try {
             if (user.getIsCompany() != null) {
                 Integer isCompany = user.getIsCompany() ? 1 : 0;
@@ -204,9 +210,14 @@ public class UserDaoDbImpl implements UserDao {
             if (user.getName() != null) {
                 statement.setString(i++, user.getName());
             }
-            if (user.getPassword() != null) {
-                statement.setString(i++, user.getPassword());
+            if (user.getPassword() != null)
+            {
+                AuthenticationService as = new AuthenticationService();
+                String encodedPassword   = as.md5Digest( user.getPassword() );
+                
+                statement.setString(i++, encodedPassword );
             }
+            
             if (user.getSurname() != null) {
                 statement.setString(i++, user.getSurname());
             }
