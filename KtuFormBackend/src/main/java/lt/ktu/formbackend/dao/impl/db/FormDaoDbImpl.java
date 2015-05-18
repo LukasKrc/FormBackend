@@ -73,7 +73,6 @@ public class FormDaoDbImpl implements FormDao {
     @Override
     public Long createForm(Form form) {
         if (form.hasMandatoryFields() != null) {
-            System.out.println(form.getQuestions().get(1).getAllowEmpty());
             throw new DaoException(Type.ERROR, "Form is missing mandatory fields: " + form.hasMandatoryFields());
         } else {
             long formId = SqlExecutor.executePreparedStatement(this::createFormFunction, FORM_CREATE_SQL, form);

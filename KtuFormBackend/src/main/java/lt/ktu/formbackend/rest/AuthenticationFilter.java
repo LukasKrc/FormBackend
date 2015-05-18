@@ -38,19 +38,20 @@ public class AuthenticationFilter implements javax.servlet.Filter {
             HttpServletRequest httpServletRequest = (HttpServletRequest) request;
             String authCredentials = httpServletRequest.getHeader("Authorization");
             AuthenticationService authenticationService = new AuthenticationService();
+            boolean authenticationStatus = false;
             try {
-                boolean authenticationStatus = authenticationService.authenticate(authCredentials, request);
-                if (authenticationStatus) {
-                    chain.doFilter(request, response);
-                } else {
-                    if (response instanceof HttpServletResponse) {
-                        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-                        httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    }
-                }
+                authenticationStatus = authenticationService.authenticate(authCredentials, request);
             } catch (Exception e) {
                 HttpServletResponse httpServletResponse = (HttpServletResponse) response;
                 httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            }
+                if (authenticationStatus) {
+                chain.doFilter(request, response);
+            } else {
+                if (response instanceof HttpServletResponse) {
+                    HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+                    httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                }
             }
         }
     }

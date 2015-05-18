@@ -21,7 +21,6 @@ public class AuthenticationService {
             return false;
         }
         System.out.println(authCredentials);
-        System.out.println(authCredentials);
         final String encodedUserPassword = authCredentials.replaceFirst("Basic ", "");
         String usernameAndPassword = null;
         try {
