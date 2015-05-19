@@ -12,11 +12,12 @@ import lt.ktu.formbackend.dao.DaoException.Type;
  *
  * @author Lukas
  */
-public class SqlExecutor {
-
+public class SqlExecutor
+{
+    private static Connection connection = SqliteConnector.getConnection();
+    
     public static <R> R executeStatement(Function<Statement, R> function) throws DaoException{
-        try (Connection connection = SqliteConnector.getConnection();
-                Statement statement = connection.createStatement()) {
+        try (Statement statement = connection.createStatement()) {
             return function.apply(statement);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -26,8 +27,7 @@ public class SqlExecutor {
 
     public static <R, P> R executePreparedStatement (
             PreparedStatementFunction<R, P> function, String sql, P param) throws DaoException{
-        try (Connection connection = SqliteConnector.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             return function.apply(statement, param);
         } catch (SQLException e) {
             e.printStackTrace();

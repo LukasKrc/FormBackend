@@ -26,18 +26,15 @@ public class SqliteConnector
             // duombaze turi buti {tomcat_dir}/database/database.db
             String dbURL = "jdbc:sqlite:../database/database.db";
             
-            Connection conn = DriverManager.getConnection(dbURL);
-            if (conn != null)
+            Connection sqliteConnection = DriverManager.getConnection(dbURL);
+            if (sqliteConnection != null)
             {
                 System.out.println("Connected to the database");
                 
-                DatabaseMetaData dm = (DatabaseMetaData) conn.getMetaData();
-                System.out.println("Driver name: " + dm.getDriverName());
-                System.out.println("Driver version: " + dm.getDriverVersion());
-                System.out.println("Product name: " + dm.getDatabaseProductName());
-                System.out.println("Product version: " + dm.getDatabaseProductVersion());
-                
-                return conn;
+                DatabaseMetaData dm = (DatabaseMetaData) sqliteConnection.getMetaData();
+                System.out.println("Database Info: driver=" + dm.getDriverName() + ", driverVersion=" + dm.getDriverVersion() + ", productName=" + dm.getDatabaseProductName() + ", productVersion=" + dm.getDatabaseProductVersion() );
+               
+                return sqliteConnection;
             } else
             {
                 System.out.println("Failed to connect...");
