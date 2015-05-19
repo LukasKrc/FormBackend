@@ -24,14 +24,14 @@ import lt.ktu.formbackend.model.SearchQuery;
 public class FormDaoDbImpl implements FormDao {
 
     private HttpServletRequest request;
-    
+
     private static final String FORM_CREATE_SQL = "INSERT INTO Forms (name, author, desc, date, allowAnon, public, showResults) values (?, ?, ?, ?, ?, ?, ?)";
     private static final String FORM_GET_USER_NAME_SQL = "SELECT id, name, author, desc, date, allowAnon, public, showResults FROM Forms WHERE author = ? AND name = ?";
     private static final String FORM_GET_ID_SQL = "SELECT id, name, author, desc, date, allowAnon, public, showResults FROM Forms WHERE id = ?";
     private static final String FORM_DELETE_SQL = "DELETE FROM Forms WHERE id = ?";
     private static final String FORM_GET_USER_NAME_ID_SQL = "SELECT author FROM Forms WHERE id = ?";
     private static final String FORM_GET_ID_BY_USER_NAME_SQL = "SELECT id FROM Forms WHERE name = ? AND author = ?";
-    private static final String FORM_SEARCH_SQL = "SELECT Forms.id, name, author, desc, date, allowAnon, public, showResults FROM (Forms LEFT JOIN TagRelations ON Forms.id = TagRelations.form) LEFT JOIN Tags ON Tags.id = TagRelations.tag WHERE ((Forms.name LIKE ? AND ? = 1) OR (Tags.tag LIKE ? AND ? = 1)) AND (Forms.author = ? OR ? = 1) AND Forms.allowAnon = ?";
+    private static final String FORM_SEARCH_SQL = "SELECT Forms.id, name, author, desc, date, allowAnon, public, showResults FROM (Forms LEFT JOIN TagRelations ON Forms.id = TagRelations.form) LEFT JOIN Tags ON Tags.id = TagRelations.tag WHERE ((Forms.name LIKE ? AND ? = 1) OR (Tags.tag LIKE ? AND ? = 1)) AND (Forms.author = ? OR ? = 1) AND (Forms.allowAnon = ? OR ? = 1)";
     private static final String FORM_GET_TAGS_SQL = "SELECT Tags.tag FROM (Forms LEFT JOIN TagRelations ON Forms.id = TagRelations.form) LEFT JOIN Tags ON Tags.id = TagRelations.tag WHERE Forms.id = ?";
     private static final String FORM_GET_IDS_USER_SQL = "SELECT Forms.id FROM Forms LEFT JOIN Users ON Forms.author = Users.username WHERE Users.id = ?";
 
@@ -42,7 +42,7 @@ public class FormDaoDbImpl implements FormDao {
     public void setRequest(HttpServletRequest request) {
         this.request = request;
     }
-    
+
     public void initialize() {
         answerDao = DaoFactory.getAnswerDao();
         questionDao = DaoFactory.getQuestionDao();
@@ -67,7 +67,8 @@ public class FormDaoDbImpl implements FormDao {
 
     @Override
     public Boolean deleteForm(long id) {
-        return SqlExecutor.executePreparedStatement(this::deleteFormFunction, FORM_DELETE_SQL, id);
+        Form form = getFormId(id);
+        return SqlExecutor.executePreparedStatement(this::deleteFormFunction, FORM_DELETE_SQL, form);
     }
 
     @Override
@@ -155,7 +156,7 @@ public class FormDaoDbImpl implements FormDao {
             throw new DaoException(Type.ERROR, e.getMessage());
         }
     }
-    
+
     private ArrayList<Long> getUsersFormIdsFunction(PreparedStatement statement, long userId) {
         ArrayList<Long> formIds = new ArrayList();
         try {
@@ -191,16 +192,17 @@ public class FormDaoDbImpl implements FormDao {
 
     private ArrayList<Form> searchFormsFunction(PreparedStatement statement, SearchQuery query) {
         ArrayList<Form> forms = new ArrayList();
-        if (query.getQuery() == null) {
-            throw new DaoException(Type.ERROR, "Search query is empty.");
-        }
+//        if (query.getQuery() == null) {
+//            throw new DaoException(Type.ERROR, "Search query is empty.");
+//        }
         try {
             for (int i = 0; i < query.getTags().size() || (query.getTags().size() == 0 && i < 1); i++) {
-                String namePattern = "%" + query.getQuery() + "%";
-                statement.setString(1, namePattern);
-                if (query.getQuery().equals("")) {
+                if (query.getQuery() == null || query.getQuery().equals("")) {
                     statement.setInt(2, 0);
+                    statement.setString(1, "%%");
                 } else {
+                    String namePattern = "%" + query.getQuery() + "%";
+                    statement.setString(1, namePattern);
                     statement.setInt(2, 1);
                 }
                 if (query.getTags() == null || query.getTags().size() == 0) {
@@ -217,13 +219,18 @@ public class FormDaoDbImpl implements FormDao {
                     statement.setString(5, "");
                     statement.setInt(6, 1);
                 }
-                int allowAnon = query.getAllowAnon() == true ? 1 : 0;
-                statement.setInt(7, allowAnon);
-                if (query.getQuery().equals("") && query.getTags().size() == 0) {
+                if (query.getAllowAnon() != null && !query.getAllowAnon().equals("")) {
+                    int allowAnon = query.getAllowAnon().equals("true") ? 1 : 0;
+                    statement.setInt(7, allowAnon);
+                    statement.setInt(8, 0);
+                } else {
+                    statement.setInt(7, 1);
+                    statement.setInt(8, 1);
+                }
+                if ((query.getQuery() == null || query.getQuery().equals("")) && (query.getTags() == null || query.getTags().size() == 0)) {
                     statement.setInt(2, 1);
                     statement.setInt(4, 1);
                 }
-                //((Forms.name LIKE ? AND ? = 1) OR (Tags.tag LIKE ? AND ? = 1)) AND (Forms.author = ? OR ? = 1) AND Forms.allowAnon = ?";
                 statement.execute();
                 ResultSet rs = statement.getResultSet();
                 ArrayList<Form> formsResult = fillFormArray(rs);
@@ -316,17 +323,17 @@ public class FormDaoDbImpl implements FormDao {
         }
     }
 
-    private Boolean deleteFormFunction(PreparedStatement statement, long id) {
+    private Boolean deleteFormFunction(PreparedStatement statement, Form form) {
         try {
-            statement.setLong(1, id);
-            ResultSet rs = statement.getResultSet();
-            if (!rs.next()) {
-                throw new DaoException(Type.ERROR, "Form doesn't exist");
-            }
+            statement.setLong(1, form.getId());
             int count = statement.executeUpdate();
             if (count == 0) {
                 throw new DaoException(Type.ERROR, "Form doesn't exist");
             } else {
+                for (int i = 0; i < form.getQuestions().size(); i++) {
+                    questionDao.deleteQuestion(form.getQuestions().get(i).getId());
+                }
+                questionDao.deleteQuestionRelations(form.getId());
                 return true;
             }
         } catch (SQLException e) {
@@ -365,7 +372,7 @@ public class FormDaoDbImpl implements FormDao {
 //        form.setFinished(finished);
         form.setId(rs.getInt("id"));
         form.setName(rs.getString("name"));
-        form.setFinished(userDao.userFinishedForm((String)request.getAttribute("username"), form.getId()));
+        form.setFinished(userDao.userFinishedForm((String) request.getAttribute("username"), form.getId()));
         boolean pAvailable = rs.getInt("public") == 1 ? true : false;
         form.setPubliclyAvailable(pAvailable);
         boolean showResults = rs.getInt("showResults") == 1 ? true : false;

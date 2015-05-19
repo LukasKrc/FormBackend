@@ -83,7 +83,7 @@ public class UserResource {
                 String errorJson = JsonSerializer.serializeError(e.getMessage());
                 return Response.serverError().entity(errorJson).build();
             }
-            return Response.ok("/user/" + user.getUsername()).build();
+            return Response.ok("{ \"url\" : \"/user/" + user.getUsername() +"\"}").build();
         } else {
             String errorJson = JsonSerializer.serializeError("Please provide the user credentials");
             return Response.serverError().entity(errorJson).build();

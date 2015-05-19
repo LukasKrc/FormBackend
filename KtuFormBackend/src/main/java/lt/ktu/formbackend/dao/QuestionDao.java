@@ -17,4 +17,6 @@ public interface QuestionDao {
     public long createQuestion(Question question, long formId);
     public ArrayList<Question> getQuestionsOfForm(long formId);
     public boolean updateQuestionsOfForm(Form form);
+    public boolean deleteQuestion(long questionId);
+    public boolean deleteQuestionRelations(long formId);
 }

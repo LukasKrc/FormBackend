@@ -12,6 +12,7 @@ import lt.ktu.formbackend.dao.DaoException.Type;
 import lt.ktu.formbackend.dao.UserDao;
 import lt.ktu.formbackend.model.FormAnswer;
 import lt.ktu.formbackend.model.User;
+import lt.ktu.formbackend.rest.AuthenticationService;
 //</editor-fold>
 
 /**

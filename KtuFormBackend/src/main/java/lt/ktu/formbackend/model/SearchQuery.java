@@ -15,10 +15,10 @@ public class SearchQuery {
     private int skip;
     private String order;
     private String author;
-    private Boolean allowAnon;
-    private Boolean finished;
+    private String allowAnon;
+    private String finished;
     
-    public SearchQuery(Boolean allowAnon, String author, Boolean finished, int limit, String order, String query, int skip, String sort, String tags) {
+    public SearchQuery(String allowAnon, String author, String finished, int limit, String order, String query, int skip, String sort, String tags) {
         this.allowAnon = allowAnon;
         this.author = author;
         this.finished = finished;
@@ -104,19 +104,19 @@ public class SearchQuery {
         this.author = author;
     }
 
-    public Boolean getAllowAnon() {
+    public String getAllowAnon() {
         return allowAnon;
     }
 
-    public void setAllowAnon(Boolean allowAnon) {
+    public void setAllowAnon(String allowAnon) {
         this.allowAnon = allowAnon;
     }
 
-    public Boolean getFinished() {
+    public String getFinished() {
         return finished;
     }
 
-    public void setFinished(Boolean finished) {
+    public void setFinished(String finished) {
         this.finished = finished;
     }
     //</editor-fold>

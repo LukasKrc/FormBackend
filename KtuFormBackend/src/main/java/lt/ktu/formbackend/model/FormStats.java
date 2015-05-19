@@ -1,5 +1,6 @@
 package lt.ktu.formbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
  * @author Lukas
  */
 public class FormStats {
+    @JsonIgnore
     private String formName;
     @JsonProperty("numvotes")
     private int votes;

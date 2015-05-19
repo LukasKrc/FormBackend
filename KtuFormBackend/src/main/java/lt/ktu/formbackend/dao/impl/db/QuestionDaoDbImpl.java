@@ -24,6 +24,18 @@ public class QuestionDaoDbImpl implements QuestionDao {
     private final String QUESTION_OF_FORM_SQL = "SELECT Questions.id, Questions.name, type, allowEmpty, choices, minVal, maxVal, allowWs, allowNl, Questions.desc, allowCustom, maxChoices, minChoices, allowedProviders, questionNumber FROM (Forms LEFT JOIN QuestionRelations ON Forms.id = QuestionRelations.form)"
             + "LEFT JOIN Questions ON QuestionRelations.question = Questions.id "
             + "WHERE Forms.id = ?";
+    private final String QUESTION_DELETE_SQL = "DELETE FROM Questions WHERE Questions.id = ?";
+    private final String QUESTION_RELATION_DELETE_SQL = "DELETE From QuestionRelations WHERE form = ?";
+    
+    @Override
+    public boolean deleteQuestionRelations(long formId) {
+        return SqlExecutor.executePreparedStatement(this::deleteQuestionRelationsFunction, QUESTION_RELATION_DELETE_SQL, formId);
+    }
+
+    @Override
+    public boolean deleteQuestion(long questionId) {
+        return SqlExecutor.executePreparedStatement(this::deleteQuestionFunction, QUESTION_DELETE_SQL, questionId);
+    }
 
     @Override
     public boolean updateQuestionsOfForm(Form form) {
@@ -60,6 +72,30 @@ public class QuestionDaoDbImpl implements QuestionDao {
     @Override
     public ArrayList<Question> getQuestionsOfForm(long formId) {
         return SqlExecutor.executePreparedStatement(this::getQuestionsOfFormFunction, QUESTION_OF_FORM_SQL, formId);
+    }
+    
+    private boolean deleteQuestionRelationsFunction(PreparedStatement statement, long formId) {
+        try {
+            statement.setLong(1, formId);
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
+    
+    private boolean deleteQuestionFunction(PreparedStatement statement, long questionId) {
+        try {
+            statement.setLong(1, questionId);
+            int count = statement.executeUpdate();
+            if (count == 0) {
+                throw new DaoException(Type.ERROR, "Question id: " + questionId + " delete failed.");
+            } else {
+                return true;
+            }
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
     }
 
     private boolean updateQuestionFunction(PreparedStatement statement, Question question) {

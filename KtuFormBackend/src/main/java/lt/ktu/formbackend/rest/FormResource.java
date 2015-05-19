@@ -44,27 +44,49 @@ public class FormResource {
     public Response searchForms(@QueryParam("q") String query, @QueryParam("tags") String tags,
             @QueryParam("sort") String sort, @QueryParam("limit") int limit,
             @QueryParam("skip") int skip, @QueryParam("order") String order,
-            @QueryParam("author") String author, @QueryParam("allow-anon") boolean allowAnon,
-            @QueryParam("finished") boolean finished) {
+            @QueryParam("author") String author, @QueryParam("allow-anon") String allowAnon,
+            @QueryParam("finished") String finished) {
 
         SearchQuery searchQuery = new SearchQuery(allowAnon, author, finished, limit, order, query, skip, sort, tags);
-        if (searchQuery.hasMandatoryFields() != null) {
-            String errorJson = JsonSerializer.serializeError("Search query is missing field: " + searchQuery.hasMandatoryFields());
-            return Response.serverError().entity(errorJson).build();
-        }
+//        if (searchQuery.hasMandatoryFields() != null) {
+//            String errorJson = JsonSerializer.serializeError("Search query is missing field: " + searchQuery.hasMandatoryFields());
+//            return Response.serverError().entity(errorJson).build();
+//        }
         try {
-        ArrayList<Form> forms = formDao.searchForms(searchQuery);
-        if (skip > forms.size() || limit == 0) {
-            String errorJson = JsonSerializer.serializeError("Skip parameter is too high or limit is not provided");
-            return Response.serverError().entity(errorJson).build();
-        }
-        Collections.sort(forms, new FormComparator(sort, order));
-        forms = new ArrayList(forms.subList(skip, forms.size()));
-        if (forms.size() > limit)
-            forms = new ArrayList(forms.subList(0, limit));
+            ArrayList<Form> forms = formDao.searchForms(searchQuery);
+            limit = 1000;
+            if (skip > forms.size()) {
+                String errorJson = JsonSerializer.serializeError("Skip parameter is too high");
+                return Response.serverError().entity(errorJson).build();
+            }
+            if (sort == null) {
+                sort = "date";
+            }
+            if (order == null) {
+                order = "descending";
+            }
+            if (finished != null) {
+                if (finished.equals("true")){
+                    for (int i = 0; i < forms.size(); i++) {
+                        if (!forms.get(i).getFinished())
+                            forms.remove(i--);
+                    }
+                } else if (finished.equals("false")) {
+                    for (int i = 0; i < forms.size(); i++) {
+                        if (forms.get(i).getFinished())
+                            forms.remove(i--);
+                    }
+                }
+            }
+            Collections.sort(forms, new FormComparator(sort, order));
+            forms = new ArrayList(forms.subList(skip, forms.size()));
+            if (forms.size() > limit) {
+                forms = new ArrayList(forms.subList(0, limit));
+            }
             return Response.ok(forms).build();
         } catch (DaoException e) {
-            return Response.serverError().entity(e.getMessage()).build();
+            String errorJson = JsonSerializer.serializeError(e.getMessage());
+            return Response.serverError().entity(errorJson).build();
         }
     }
 
@@ -129,8 +151,11 @@ public class FormResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putForm(@PathParam("id") long id, Form form) {
-        System.out.println("Resource");
         try {
+        if (!formDao.getFormId(id).getAuthor().equals((String)request.getAttribute("username"))){
+            String errorJson = JsonSerializer.serializeError("You can only update your own forms");
+            return Response.serverError().entity(errorJson).build();
+        }
         if (formDao.updateForm(id, form))
             return Response.ok().build();
         else {
