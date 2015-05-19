@@ -52,7 +52,7 @@ public class FormResource {
             String errorJson = JsonSerializer.serializeError("Search query is missing field: " + searchQuery.hasMandatoryFields());
             return Response.serverError().entity(errorJson).build();
         }
-//        try {
+        try {
         ArrayList<Form> forms = formDao.searchForms(searchQuery);
         if (skip > forms.size() || limit == 0) {
             String errorJson = JsonSerializer.serializeError("Skip parameter is too high or limit is not provided");
@@ -63,9 +63,9 @@ public class FormResource {
         if (forms.size() > limit)
             forms = new ArrayList(forms.subList(0, limit));
             return Response.ok(forms).build();
-//        } catch (DaoException e) {
-//            return Response.serverError().entity(e.getMessage()).build();
-//        }
+        } catch (DaoException e) {
+            return Response.serverError().entity(e.getMessage()).build();
+        }
     }
 
     @GET
