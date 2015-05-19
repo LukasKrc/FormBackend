@@ -100,7 +100,7 @@ public class UserResource {
         }
         if (((String) request.getAttribute("username")).equals(username)) {
             userDao.updateUser(user, username);
-            return Response.ok().build();
+            return Response.ok("{\"success\":\"true\"}", MediaType.APPLICATION_JSON).build();
         }
         else {
             String errorJson = JsonSerializer.serializeError("You can only update your own account");

@@ -166,7 +166,9 @@ public class UserDaoDbImpl implements UserDao {
                 statement.setString(1, user.getUsername());
             }
             if (user.getPassword() != null) {
-                statement.setString(2, user.getPassword());
+                AuthenticationService as = new AuthenticationService();
+                String encodedPassword = as.md5Digest(user.getPassword());
+                statement.setString(2, encodedPassword);
             }
             if (user.getName() != null) {
                 statement.setString(3, user.getName());
@@ -206,7 +208,9 @@ public class UserDaoDbImpl implements UserDao {
                 statement.setString(i++, user.getName());
             }
             if (user.getPassword() != null) {
-                statement.setString(i++, user.getPassword());
+                AuthenticationService as = new AuthenticationService();
+                String encodedPassword = as.md5Digest(user.getPassword());
+                statement.setString(i++, encodedPassword);
             }
             if (user.getSurname() != null) {
                 statement.setString(i++, user.getSurname());
