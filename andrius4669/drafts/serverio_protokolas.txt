@@ -1,11 +1,11 @@
 serveris klausosi HTTP bei HTTPS protokolais.
 
-testuojant kogero bus naudodamas 17303 portas HTTP protokolui, ir 17304 portas HTTPS protokolui, kadangi jie nereikalauja root teisiÅ³ unix sistemose.
+testuojant kogero bus naudodamas 17303 portas HTTP protokolui, ir 17304 portas HTTPS protokolui, kadangi jie nereikalauja root teisiø unix sistemose.
 
-tiksliai dar nÄ—ra nusprÄ™sta kokius portus naudosim (standartinius ar ne), todÄ—l klientas turÄ—tÅ³ turÄ—ti galimybÄ™ juos pasirinkti.
+tiksliai dar nëra nuspræsta kokius portus naudosim (standartinius ar ne), todël klientas turëtø turëti galimybæ juos pasirinkti.
 
-serveris leidÅ¾ia klientams ieÅ¡koti, siÅ«stis bei uÅ¾pildyti formas.
+serveris leidşia klientams ieğkoti, siûstis bei uşpildyti formas.
 
-paieÅ¡ka gali bÅ«ti vykdoma pagal vardÄ…, autoriÅ³, pagal formÅ³ tag'us bei kitus paieÅ¡kos kriterijus.
+paieğka gali bûti vykdoma pagal vardà, autoriø, pagal formø tag'us bei kitus paieğkos kriterijus.
 
-anonimai negali kurti formÅ³, taÄiau jie gali jas pildyti, jei formos autorius tai leidÅ¾ia.
+anonimai negali kurti formø, taèiau jie gali jas pildyti, jei formos autorius tai leidşia.
