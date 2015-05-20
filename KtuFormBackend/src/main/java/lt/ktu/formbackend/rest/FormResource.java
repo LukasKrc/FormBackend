@@ -15,7 +15,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
@@ -48,13 +47,9 @@ public class FormResource {
             @QueryParam("finished") String finished) {
 
         SearchQuery searchQuery = new SearchQuery(allowAnon, author, finished, limit, order, query, skip, sort, tags);
-//        if (searchQuery.hasMandatoryFields() != null) {
-//            String errorJson = JsonSerializer.serializeError("Search query is missing field: " + searchQuery.hasMandatoryFields());
-//            return Response.serverError().entity(errorJson).build();
-//        }
         try {
             ArrayList<Form> forms = formDao.searchForms(searchQuery);
-            limit = 1000;
+            if (limit == 0 ) limit = 1000;
             if (skip > forms.size()) {
                 String errorJson = JsonSerializer.serializeError("Skip parameter is too high");
                 return Response.serverError().entity(errorJson).build();

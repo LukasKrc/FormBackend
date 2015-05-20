@@ -24,7 +24,7 @@ public class AuthenticationFilter implements javax.servlet.Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
+        
         if (request instanceof HttpServletRequest) {
             DaoFactory.getFormDao().setRequest((HttpServletRequest) request);
             String path = ((HttpServletRequest) request).getRequestURI();
@@ -45,7 +45,7 @@ public class AuthenticationFilter implements javax.servlet.Filter {
                 HttpServletResponse httpServletResponse = (HttpServletResponse) response;
                 httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-                if (authenticationStatus) {
+            if (authenticationStatus) {
                 chain.doFilter(request, response);
             } else {
                 if (response instanceof HttpServletResponse) {

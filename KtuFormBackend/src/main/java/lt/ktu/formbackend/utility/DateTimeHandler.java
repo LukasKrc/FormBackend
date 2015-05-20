@@ -17,7 +17,11 @@ public abstract class DateTimeHandler {
         int minute = dateHandler.get(Calendar.MINUTE);
         int second = dateHandler.get(Calendar.SECOND);
         String monthString = month < 10 ? 0 + "" + month : "" + month;
-        return "" + year + "" + monthString + "" + day + " " + hour + ":" + minute + ":" + second;
+        String dayString = day < 10 ? 0 + "" + day : "" + day;
+        String hourString = hour < 10 ? 0 + "" + hour : "" + hour;
+        String minuteString = minute < 10 ? 0 + "" + minute : "" + minute;
+        String secondString = second < 10 ? 0 + "" + second : "" + second;
+        return "" + year + "" + monthString + "" + dayString + " " + hourString + ":" + minuteString + ":" + secondString;
     }
     
 }

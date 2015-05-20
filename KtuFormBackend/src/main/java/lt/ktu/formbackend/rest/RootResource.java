@@ -20,4 +20,10 @@ public class RootResource {
     public Response rootPage() {
         return Response.serverError().entity("{ \"error\" : \" Root URL doesn't do anything\" }").build();
     }
+    
+    @GET
+    @Path("test")
+    public Response test() {
+        return Response.ok("Works", MediaType.TEXT_PLAIN).build();
+    }
 }
