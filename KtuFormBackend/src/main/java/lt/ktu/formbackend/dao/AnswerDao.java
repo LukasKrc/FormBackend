@@ -6,10 +6,9 @@
 package lt.ktu.formbackend.dao;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import lt.ktu.formbackend.model.Answer;
-import lt.ktu.formbackend.model.AnswerContainer;
 import lt.ktu.formbackend.model.AnswerStats;
+import lt.ktu.formbackend.model.FormAnswer;
 import lt.ktu.formbackend.model.FormStats;
 
 /**
@@ -23,4 +22,6 @@ public interface AnswerDao {
     public int getVotesOfForm(long formId);
     public ArrayList<AnswerStats> getFormQuestionStats(long formId);
     public ArrayList<FormStats> getUserFormStats(String username);
+    public ArrayList<Long> getUsersFilledForm(long formId);
+    public FormAnswer getUsersAnswerToForm(long userId, long formId);
 }

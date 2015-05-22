@@ -41,17 +41,19 @@ public class AuthenticationFilter implements javax.servlet.Filter {
             boolean authenticationStatus = false;
             try {
                 authenticationStatus = authenticationService.authenticate(authCredentials, request);
+                if (authenticationStatus) {
+                    chain.doFilter(request, response);
+                } else {
+                    if (response instanceof HttpServletResponse) {
+                        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+                        httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        httpServletResponse.getWriter().print("{\"error\" : \"Wrong username or password.\"}");
+                    }
+                }
             } catch (Exception e) {
                 HttpServletResponse httpServletResponse = (HttpServletResponse) response;
                 httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            }
-            if (authenticationStatus) {
-                chain.doFilter(request, response);
-            } else {
-                if (response instanceof HttpServletResponse) {
-                    HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-                    httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                }
+                httpServletResponse.getWriter().print("{\"error\" : \"" + e.getMessage() + "\"}");
             }
         }
     }

@@ -1,5 +1,7 @@
 package lt.ktu.formbackend.model;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author Lukas
@@ -8,8 +10,27 @@ public class FormAnswer {
     private String author;
     private long form;
     private long id;
+    private ArrayList<Answer> answers;
+    private long authorId;
     
     //<editor-fold desc="Getters and setters">
+
+    public long getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(long authorId) {
+        this.authorId = authorId;
+    }
+
+    public ArrayList<Answer> getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(ArrayList<Answer> answers) {
+        this.answers = answers;
+    }
+    
     public String getAuthor() {
         return author;
     }

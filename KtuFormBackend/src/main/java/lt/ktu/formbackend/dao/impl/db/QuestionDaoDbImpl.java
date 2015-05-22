@@ -21,9 +21,7 @@ public class QuestionDaoDbImpl implements QuestionDao {
 
     private final String QUESTION_CREATE_SQL = "INSERT INTO Questions (name, type, allowEmpty, choices, minVal, maxVal, allowWs, allowNl, desc, allowCustom, maxChoices, minChoices, allowedProviders, questionNumber) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private final String QUESTION_RELATION_CREATE_SQL = "INSERT INTO QuestionRelations (question, form) values (?, ?)";
-    private final String QUESTION_OF_FORM_SQL = "SELECT Questions.id, Questions.name, type, allowEmpty, choices, minVal, maxVal, allowWs, allowNl, Questions.desc, allowCustom, maxChoices, minChoices, allowedProviders, questionNumber FROM (Forms LEFT JOIN QuestionRelations ON Forms.id = QuestionRelations.form)"
-            + "LEFT JOIN Questions ON QuestionRelations.question = Questions.id "
-            + "WHERE Forms.id = ?";
+    private final String QUESTION_OF_FORM_SQL = "SELECT Questions.id, Questions.name, type, allowEmpty, choices, minVal, maxVal, allowWs, allowNl, Questions.desc, allowCustom, maxChoices, minChoices, allowedProviders, questionNumber FROM (Questions LEFT JOIN QuestionRelations ON Questions.id = QuestionRelations.question) LEFT JOIN Forms ON QuestionRelations.form = Forms.id WHERE Forms.id = ?";
     private final String QUESTION_DELETE_SQL = "DELETE FROM Questions WHERE Questions.id = ?";
     private final String QUESTION_RELATION_DELETE_SQL = "DELETE From QuestionRelations WHERE form = ?";
     
@@ -225,6 +223,7 @@ public class QuestionDaoDbImpl implements QuestionDao {
         try {
             int i = 0;
             while (rs.next()) {
+                System.out.println("NEXT");
                 Question question = new Question();
                 question.setId(rs.getLong("id"));
                 question.setAllowCustom(rs.getString("allowCustom"));

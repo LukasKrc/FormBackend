@@ -37,6 +37,8 @@ public class AnswerDaoDbImpl implements AnswerDao {
     private final String ANSWER_RELATION_CREATE_SQL = "INSERT INTO AnswerRelations (formAnswer, answer) values (?, ?)";
     private final String ANSWER_FORM_GET_SQL = "SELECT Answers.id, type, valueInteger, valueText, oneChoice, customInteger, customText, multiChoice, questionNumber, customIntegerArray, customTextArray FROM ((Answers LEFT JOIN AnswerRelations ON Answers.id = AnswerRelations.answer) LEFT JOIN FormAnswers ON AnswerRelations.formAnswer = FormAnswers.id) LEFT JOIN Forms ON Forms.id = FormAnswers.form WHERE Forms.id = ?";
     private final String ANSWER_FORM_COUNT_SQL = "SELECT Count(*) FROM FormAnswers WHERE form = ?";
+    private final String ANSWER_GET_USERS_FORM_SQL = "SELECT author FROM FormAnswers WHERE form = ?";
+    private final String ANSWER_GET_USERS_SQL = "SELECT Answers.id FROM (FormAnswers LEFT JOIN AnswerRelations ON AnswerRelations.formAnswer = formAnswers.id) LEFT JOIN Answers ON Answers.id = AnswerRelations.answer WHERE FormAnswers.author = ?";
 
     public void initialize() {
         formDao = DaoFactory.getFormDao();
@@ -44,6 +46,19 @@ public class AnswerDaoDbImpl implements AnswerDao {
         userDao = DaoFactory.getUserDao();
     }
     
+    @Override
+    public FormAnswer getUsersAnswerToForm(long userId, long formId) {
+        FormAnswer formAnswer = new FormAnswer();
+        formAnswer.setAuthor(userDao.getUserId(userId).getUsername());
+        formAnswer.setForm(formId);
+        return SqlExecutor.executePreparedStatement(this::getUsersAnswerToFormFunction, ANSWER_GET_USERS_SQL, formAnswer);
+    }
+    
+    @Override
+    public ArrayList<Long> getUsersFilledForm(long formId) {
+        return SqlExecutor.executePreparedStatement(this::getUsersFilledFormFunction, ANSWER_GET_USERS_FORM_SQL, formId);
+    }
+
     @Override
     public ArrayList<AnswerStats> getFormQuestionStats(long formId) {
         ArrayList<Answer> answers = SqlExecutor.executePreparedStatement(this::getAnswersOfFormFunction, ANSWER_FORM_GET_SQL, formId);
@@ -101,6 +116,56 @@ public class AnswerDaoDbImpl implements AnswerDao {
         long answerId = SqlExecutor.executePreparedStatement(this::createAnswerFunction, ANSWER_CREATE_SQL, answer);
         createAnswerRelation(formAnswerId, answerId);
         return answerId;
+    }
+    
+    private FormAnswer getUsersAnswerToFormFunction(PreparedStatement statement, FormAnswer formAnswer) {
+        try {
+            statement.setString(1, formAnswer.getAuthor());
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            ArrayList<Long> answerIds = new ArrayList();
+            while (rs.next()) {
+                answerIds.add(rs.getLong("id"));
+            }
+            ArrayList<Answer> allAnswersOfForm = new ArrayList();
+            allAnswersOfForm = getAnswersOfForm(formAnswer.getForm());
+            ArrayList<Answer> usersAnswers = new ArrayList();
+            for (int i = 0; i < answerIds.size(); i ++) {
+                for (int j = 0; j < allAnswersOfForm.size(); j++){
+                    if (allAnswersOfForm.get(j).getId() == answerIds.get(i)) {
+                        usersAnswers.add(allAnswersOfForm.get(j));
+                        break;
+                    }
+                }
+            }
+            FormAnswer formAnswerReturn = new FormAnswer();
+            formAnswerReturn.setAnswers(usersAnswers);
+            formAnswerReturn.setAuthor(formAnswer.getAuthor());
+            formAnswerReturn.setForm(formAnswer.getForm());
+            formAnswerReturn.setId(formAnswer.getId());
+            return formAnswerReturn;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
+    }
+    
+    private ArrayList<Long> getUsersFilledFormFunction(PreparedStatement statement, long formId) {
+        try {
+            ArrayList<Long> ids = new ArrayList();
+            statement.setLong(1, formId);
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            while (rs.next()){
+                if (!ids.contains(rs.getString("author")))
+                    ids.add(userDao.getUserUsername(rs.getString("author")).getId());
+            }
+            if (ids.size() == 0) {
+                throw new DaoException(Type.ERROR, "Form has not been filled by anyone.");
+            }
+            return ids;
+        } catch (SQLException e) {
+            throw new DaoException(Type.ERROR, e.getMessage());
+        }
     }
 
     private boolean createAnswerRelation(long formAnswerId, long answerId) {

@@ -347,6 +347,8 @@ public class FormDaoDbImpl implements FormDao {
             statement.setString(2, form.getAuthor());
             statement.execute();
             ResultSet rs = statement.getResultSet();
+            if (!rs.next()) 
+                throw new DaoException(Type.ERROR, "Form doesn't exist.");
             return rs.getLong("id");
         } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());

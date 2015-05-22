@@ -19,6 +19,7 @@ import lt.ktu.formbackend.dao.DaoException;
 import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
 import lt.ktu.formbackend.model.Form;
+import lt.ktu.formbackend.model.FormsContainer;
 import lt.ktu.formbackend.model.SearchQuery;
 import lt.ktu.formbackend.utility.DateTimeHandler;
 import lt.ktu.formbackend.utility.FormComparator;
@@ -49,7 +50,9 @@ public class FormResource {
         SearchQuery searchQuery = new SearchQuery(allowAnon, author, finished, limit, order, query, skip, sort, tags);
         try {
             ArrayList<Form> forms = formDao.searchForms(searchQuery);
-            if (limit == 0 ) limit = 1000;
+            if (limit == 0) {
+                limit = 1000;
+            }
             if (skip > forms.size()) {
                 String errorJson = JsonSerializer.serializeError("Skip parameter is too high");
                 return Response.serverError().entity(errorJson).build();
@@ -61,15 +64,17 @@ public class FormResource {
                 order = "descending";
             }
             if (finished != null) {
-                if (finished.equals("true")){
+                if (finished.equals("true")) {
                     for (int i = 0; i < forms.size(); i++) {
-                        if (!forms.get(i).getFinished())
+                        if (!forms.get(i).getFinished()) {
                             forms.remove(i--);
+                        }
                     }
                 } else if (finished.equals("false")) {
                     for (int i = 0; i < forms.size(); i++) {
-                        if (forms.get(i).getFinished())
+                        if (forms.get(i).getFinished()) {
                             forms.remove(i--);
+                        }
                     }
                 }
             }
@@ -78,7 +83,9 @@ public class FormResource {
             if (forms.size() > limit) {
                 forms = new ArrayList(forms.subList(0, limit));
             }
-            return Response.ok(forms).build();
+            FormsContainer container = new FormsContainer();
+            container.setForms(forms);
+            return Response.ok(container).build();
         } catch (DaoException e) {
             String errorJson = JsonSerializer.serializeError(e.getMessage());
             return Response.serverError().entity(errorJson).build();
@@ -107,7 +114,8 @@ public class FormResource {
                 formDao.deleteForm(id);
                 return Response.ok().build();
             } else {
-                return Response.serverError().entity("You can only delete your own forms").build();
+                String errorJson = JsonSerializer.serializeError("You can only delete your own forms");
+                return Response.serverError().entity(errorJson).build();
             }
         } catch (DaoException e) {
             String errorJson = JsonSerializer.serializeError(e.getMessage());
@@ -147,16 +155,16 @@ public class FormResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putForm(@PathParam("id") long id, Form form) {
         try {
-        if (!formDao.getFormId(id).getAuthor().equals((String)request.getAttribute("username"))){
-            String errorJson = JsonSerializer.serializeError("You can only update your own forms");
-            return Response.serverError().entity(errorJson).build();
-        }
-        if (formDao.updateForm(id, form))
-            return Response.ok().build();
-        else {
-            String errorJson = JsonSerializer.serializeError("Form update failed");
-            return Response.serverError().entity(errorJson).build();
-        }
+            if (!formDao.getFormId(id).getAuthor().equals((String) request.getAttribute("username"))) {
+                String errorJson = JsonSerializer.serializeError("You can only update your own forms");
+                return Response.serverError().entity(errorJson).build();
+            }
+            if (formDao.updateForm(id, form)) {
+                return Response.ok().build();
+            } else {
+                String errorJson = JsonSerializer.serializeError("Form update failed");
+                return Response.serverError().entity(errorJson).build();
+            }
         } catch (DaoException e) {
             String errorJson = JsonSerializer.serializeError(e.getMessage());
             return Response.serverError().entity(errorJson).build();
