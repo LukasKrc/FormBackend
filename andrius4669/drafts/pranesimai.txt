@@ -29,6 +29,7 @@ naudojamos užklausos:
     > pateikiami duomenys (JSON formatu)
       - uname    - naudotojo vardas (string)
       - pass     - slaptažodis (string)
+      - isCompany - ar kompanija (boolean)
       * company  - kompanijos pavadinimas (jei kompanija) (string)
       * name     - vardas (jei asmuo) (string)
       * surname  - pavardė (jei asmuo) (string)
