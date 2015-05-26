@@ -29,6 +29,7 @@ naudojamos užklausos:
     > pateikiami duomenys (JSON formatu)
       - uname    - naudotojo vardas (string)
       - pass     - slaptažodis (string)
+      - isCompany - ar kompanija (boolean)
       * company  - kompanijos pavadinimas (jei kompanija) (string)
       * name     - vardas (jei asmuo) (string)
       * surname  - pavardė (jei asmuo) (string)
@@ -46,6 +47,9 @@ naudojamos užklausos:
 > /answers/naudotojovardas/formospavadinimas
   > metodas POST
     > formos užpildymas
+    > žiūrėti "FORMOS FORMATAS" sekciją, "atsakymo formatas" sekciją
+  > metodas GET
+    > grąžina visus atsakymus į formą
     > žiūrėti "FORMOS FORMATAS" sekciją, "atsakymo formatas" sekciją
 
 > /stats/naudotojovardas/formospavadinimas
@@ -180,11 +184,7 @@ publikuojamos formos formatas yra labai panašus, tik neturi "date", "id", "auth
   * "allow-custom" - leisti savus pasirinkimus (argumentas yra bet koks tipas išskyrus "one-choice" ir "multi-choice") (galioja tik "one-choice" ir "multi-choice" tipams) (string)
     # pastaba: jei šis argumentas pažymėtas, galima naudoti elementarių tipų apribojimus, ir jie bus pritaikomi "custom" laukui
   - "allow-empty"  - leisti neatsakyti į šį klausimą (boolean)
-  * "default"      - numatyta reikšmė (tipas priklauso nuo klausimo tipo)
-    > "integer"         - integer
-    > "string", "email" - string
-    > "one-choice"      - integer
-    > "multi-choice"    - array of boolean
+  -
 
 > papildomi tipų apribojimai:
   - "integer":
@@ -211,16 +211,90 @@ atsakymo formatas:
 ]
 > atsakymų objektai:
   > "integer":
-    - "val"  - atsakymas (integer)
+    - "valInt"  - atsakymas (integer)
   > "string", "email":
-    - "val"  - atsakymas (string)
+    - "valStr"  - atsakymas (string)
   > "one-choice":
     - "id"     - asakymo id (pradedant nuo 1). jei 0 - klausimas neatsakytas, arba naudojamas "custom" elementas (tipas: integer)
     * "custom" - jei egzistuoja, klientas pasirinko "custom" atsakymą (tipas: integer arba string)
+      - "customInt" - integer tipo "custom"
+      - "customStr" - string tipo "custom"
   > "multi-choice":
     - "selected"  - pasirinkti atsakymai (array of boolean)
     * "custom"    - pasirinkti custom atsakymai (array of integer or string (depends on allowed custom values in question))
+      - "customIntArr" - int tipo "custom" masyvas
+      - "customStrArr" - string tipo "custom" masyvas
+      
+      
+visų grąžinamų formos atsakymų formatas :
 
+{
+    "answers": [
+        {
+            "author": "Lukas",
+            "answers": [
+                {
+                    "type": "one-choice",
+                    "questionNumber": 0,
+                    "formAnswerId": 0,
+                    "valInt": 0,
+                    "valStr": null,
+                    "id": 0,
+                    "customInt": 0,
+                    "customIntArr": null,
+                    "customStrArr": null,
+                    "customStr": null,
+                    "selected": null
+                },
+                {
+                    "type": "multi-choice",
+                    "questionNumber": 1,
+                    "formAnswerId": 0,
+                    "valInt": 0,
+                    "valStr": null,
+                    "id": 0,
+                    "customInt": 0,
+                    "customIntArr": null,
+                    "customStrArr": [
+                        "battletoads"
+                    ],
+                    "customStr": null,
+                    "selected": [
+                        true,
+                        false,
+                        true
+                    ]
+                },
+                {
+                    "type": "integer",
+                    "questionNumber": 2,
+                    "formAnswerId": 0,
+                    "valInt": 13,
+                    "valStr": null,
+                    "id": 0,
+                    "customInt": 0,
+                    "customIntArr": null,
+                    "customStrArr": null,
+                    "customStr": null,
+                    "selected": null
+                },
+                {
+                    "type": "string",
+                    "questionNumber": 3,
+                    "formAnswerId": 0,
+                    "valInt": 0,
+                    "valStr": "Derpa2",
+                    "id": 0,
+                    "customInt": 0,
+                    "customIntArr": null,
+                    "customStrArr": null,
+                    "customStr": null,
+                    "selected": null
+                }
+            ]
+        }
+    ]
+  }
 ################################################################
 #                    FORMOS STATISTIKA                         #
 ################################################################
