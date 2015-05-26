@@ -85,6 +85,7 @@ public class FormResource {
             }
             FormsContainer container = new FormsContainer();
             container.setForms(forms);
+            container.setCount(forms.size());
             return Response.ok(container).build();
         } catch (DaoException e) {
             String errorJson = JsonSerializer.serializeError(e.getMessage());
