@@ -10,18 +10,16 @@ import lt.ktu.formbackend.model.Form;
 public class FormComparator implements Comparator<Form> {
 
     private final String sortType;
-    private final String sortOrder;
+    private final boolean sortOrder; // true: ascending, false: descending
 
     public FormComparator(String orderType, String sortOrder) {
-        this.sortType = orderType;
-        this.sortOrder = sortOrder;
+        this.sortType =  orderType != null ? orderType : "";
+        this.sortOrder = sortOrder != null && sortOrder.equals("ascending");
     }
 
     @Override
     public int compare(Form o1, Form o2) {
-        boolean so = !sortOrder.equals("descending"); /* ascending or unspecified order */
-        final String st = sortType != null ? sortType : "";
-        switch(st)
+        switch(sortType)
         {
             case "relevance":
                 /* TODO */
@@ -29,14 +27,14 @@ public class FormComparator implements Comparator<Form> {
             case "popularity":
             {
                 int votediff = o1.getVotes() - o2.getVotes();
-                return so ? votediff : -votediff;
+                return sortOrder ? votediff : -votediff;
             }
             case "date":
             default:
             {
-                long date1 = Long.parseLong(o1.getDate().replace(" ", "").replace(":", ""));
-                long date2 = Long.parseLong(o2.getDate().replace(" ", "").replace(":", ""));
-                return (int)(so ? date1 - date2 : date2 - date1);
+                long date1 = Long.parseLong(o1.getDate().replace(" ", "").replace(":", "").replace("-", ""));
+                long date2 = Long.parseLong(o2.getDate().replace(" ", "").replace(":", "").replace("-", ""));
+                return (int)(sortOrder ? date1 - date2 : date2 - date1);
             }
         }
     }
