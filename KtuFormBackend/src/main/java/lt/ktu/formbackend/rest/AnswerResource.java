@@ -16,7 +16,6 @@ import lt.ktu.formbackend.dao.impl.db.AnswerDaoDbImpl;
 import lt.ktu.formbackend.dao.impl.db.DaoFactory;
 import lt.ktu.formbackend.dao.impl.db.FormDaoDbImpl;
 import lt.ktu.formbackend.dao.impl.db.UserDaoDbImpl;
-import lt.ktu.formbackend.model.Answer;
 import lt.ktu.formbackend.model.AnswerContainer;
 import lt.ktu.formbackend.model.Form;
 import lt.ktu.formbackend.model.FormAnswer;
@@ -66,7 +65,7 @@ public class AnswerResource {
     @POST
     @Path("/{username}/{formName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response fillForm(@PathParam("username") String username, @PathParam("formName") String formName, AnswerContainer answers) {
+    public Response fillForm(@PathParam("username") String username, @PathParam("formName") String formName, FormAnswer answers) {
         if (username == null || formName == null) {
             String errorJson = JsonSerializer.serializeError("Invalid URL for POST");
             return Response.serverError().entity(errorJson).build();

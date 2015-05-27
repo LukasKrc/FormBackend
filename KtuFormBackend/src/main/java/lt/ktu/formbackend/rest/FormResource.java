@@ -100,7 +100,7 @@ public class FormResource {
         try {
             Form form = formDao.getFormId(id);
             String formJsonString = JsonSerializer.serializeForm(form);
-            return Response.ok(formJsonString, MediaType.APPLICATION_JSON).build();
+            return Response.ok(form, MediaType.APPLICATION_JSON).build();
         } catch (DaoException e) {
             String errorJson = JsonSerializer.serializeError(e.getMessage());
             return Response.serverError().entity(errorJson).build();

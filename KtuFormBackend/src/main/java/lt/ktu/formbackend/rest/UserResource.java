@@ -76,6 +76,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createUser(User user) {
+        System.out.println(request);
         if (user != null) {
             try {
                 userDao.createUser(user);

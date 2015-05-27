@@ -1,6 +1,7 @@
 package lt.ktu.formbackend.rest;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -24,8 +25,8 @@ public class AuthenticationFilter implements javax.servlet.Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        
         if (request instanceof HttpServletRequest) {
+            HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             DaoFactory.getFormDao().setRequest((HttpServletRequest) request);
             String path = ((HttpServletRequest) request).getRequestURI();
             System.out.println(path);
@@ -45,15 +46,11 @@ public class AuthenticationFilter implements javax.servlet.Filter {
                     chain.doFilter(request, response);
                 } else {
                     if (response instanceof HttpServletResponse) {
-                        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
                         httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        httpServletResponse.getWriter().print("{\"error\" : \"Wrong username or password.\"}");
                     }
                 }
             } catch (Exception e) {
-                HttpServletResponse httpServletResponse = (HttpServletResponse) response;
                 httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                httpServletResponse.getWriter().print("{\"error\" : \"" + e.getMessage() + "\"}");
             }
         }
     }
