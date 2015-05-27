@@ -86,10 +86,7 @@ public class UserDaoDbImpl implements UserDao {
             statement.setString(2, answer.getAuthor());
             statement.execute();
             ResultSet rs = statement.getResultSet();
-            if (rs.next())
-                return true;
-            else 
-                return false;
+            return rs.next();
         } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }
@@ -100,10 +97,7 @@ public class UserDaoDbImpl implements UserDao {
             statement.setString(1, username);
             statement.execute();
             ResultSet rs = statement.getResultSet();
-            if (rs.next())
-                return true;
-            else
-                return false;
+            return rs.next();
         } catch (SQLException e) {
             throw new DaoException(Type.ERROR, e.getMessage());
         }

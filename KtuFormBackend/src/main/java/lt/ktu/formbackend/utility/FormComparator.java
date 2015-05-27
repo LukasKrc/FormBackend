@@ -9,8 +9,8 @@ import lt.ktu.formbackend.model.Form;
  */
 public class FormComparator implements Comparator<Form> {
 
-    private String sortType;
-    private String sortOrder;
+    private final String sortType;
+    private final String sortOrder;
 
     public FormComparator(String orderType, String sortOrder) {
         this.sortType = orderType;
