@@ -39,9 +39,8 @@ public class AuthenticationFilter implements javax.servlet.Filter {
             HttpServletRequest httpServletRequest = (HttpServletRequest) request;
             String authCredentials = httpServletRequest.getHeader("Authorization");
             AuthenticationService authenticationService = new AuthenticationService();
-            boolean authenticationStatus = false;
             try {
-                authenticationStatus = authenticationService.authenticate(authCredentials, request);
+                boolean authenticationStatus = authenticationService.authenticate(authCredentials, request);
                 if (authenticationStatus) {
                     chain.doFilter(request, response);
                 } else {

@@ -9,87 +9,32 @@ import lt.ktu.formbackend.model.Form;
  */
 public class FormComparator implements Comparator<Form> {
 
-    private String sortType;
-    private String sortOrder;
+    private final String sortType;
+    private final boolean sortOrder; // true: ascending, false: descending
 
     public FormComparator(String orderType, String sortOrder) {
-        this.sortType = orderType;
-        this.sortOrder = sortOrder;
+        this.sortType =  orderType != null ? orderType : "";
+        this.sortOrder = sortOrder != null && sortOrder.equals("ascending");
     }
 
     @Override
     public int compare(Form o1, Form o2) {
-        long date1 = Long.parseLong(o1.getDate().replace(" ", "").replace(":", ""));
-        long date2 = Long.parseLong(o2.getDate().replace(" ", "").replace(":", ""));
-        if (sortOrder.equals("descending")) {
-            if (sortType == null) {
-                long difference = (date2 - date1);
-                if (difference == 0) {
-                    return 0;
-                } else if (difference < 0) {
-                    return -1;
-                } else {
-                    return 1;
-                }
+        switch(sortType)
+        {
+            case "relevance":
+                /* TODO */
+                /* FALL THROUGH */
+            case "popularity":
+            {
+                int votediff = o1.getVotes() - o2.getVotes();
+                return sortOrder ? votediff : -votediff;
             }
-            switch (sortType) {
-                case "popularity":
-                    return o2.getVotes() - o1.getVotes();
-
-                case "date":
-                    long difference = (date2 - date1);
-                    if (difference == 0) {
-                        return 0;
-                    } else if (difference < 0) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-
-                default:
-                    long defaultDifference = (date2 - date1);
-                    if (defaultDifference == 0) {
-                        return 0;
-                    } else if (defaultDifference < 0) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-            }
-        } else {
-            if (sortType == null) {
-                long difference = (date1 - date2);
-                if (difference == 0) {
-                    return 0;
-                } else if (difference < 0) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-            switch (sortType) {
-                case "popularity":
-                    return o1.getVotes() - o2.getVotes();
-
-                case "date":
-                    long difference = (date1 - date2);
-                    if (difference == 0) {
-                        return 0;
-                    } else if (difference < 0) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-
-                default:
-                    long defaultDifference = (date1 - date2);
-                    if (defaultDifference == 0) {
-                        return 0;
-                    } else if (defaultDifference < 0) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
+            case "date":
+            default:
+            {
+                long date1 = Long.parseLong(o1.getDate().replace(" ", "").replace(":", "").replace("-", ""));
+                long date2 = Long.parseLong(o2.getDate().replace(" ", "").replace(":", "").replace("-", ""));
+                return (int)(sortOrder ? date1 - date2 : date2 - date1);
             }
         }
     }

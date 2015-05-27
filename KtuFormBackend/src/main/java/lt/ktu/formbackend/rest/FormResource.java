@@ -37,7 +37,7 @@ public class FormResource {
     @Context
     HttpServletRequest request;
 
-    private FormDaoDbImpl formDao = DaoFactory.getFormDao();
+    private final FormDaoDbImpl formDao = DaoFactory.getFormDao();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -57,12 +57,6 @@ public class FormResource {
                 String errorJson = JsonSerializer.serializeError("Skip parameter is too high");
                 return Response.serverError().entity(errorJson).build();
             }
-            if (sort == null) {
-                sort = "date";
-            }
-            if (order == null) {
-                order = "descending";
-            }
             if (finished != null) {
                 if (finished.equals("true")) {
                     for (int i = 0; i < forms.size(); i++) {
@@ -70,7 +64,7 @@ public class FormResource {
                             forms.remove(i--);
                         }
                     }
-                } else if (finished.equals("false")) {
+                } else {
                     for (int i = 0; i < forms.size(); i++) {
                         if (forms.get(i).getFinished()) {
                             forms.remove(i--);
