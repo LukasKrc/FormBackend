@@ -1,5 +1,6 @@
 package lt.ktu.formbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 
 /**
@@ -8,9 +9,13 @@ import java.util.ArrayList;
  */
 public class FormAnswer {
     private String author;
+    @JsonIgnore
     private long form;
+    @JsonIgnore
     private long id;
     private ArrayList<Answer> answers;
+    
+    @JsonIgnore
     private long authorId;
     
     //<editor-fold desc="Getters and setters">

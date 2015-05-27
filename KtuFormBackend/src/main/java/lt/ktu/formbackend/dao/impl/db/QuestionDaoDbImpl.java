@@ -38,7 +38,6 @@ public class QuestionDaoDbImpl implements QuestionDao {
     @Override
     public boolean updateQuestionsOfForm(Form form) {
         boolean success = true;
-        System.out.println("stat");
         ArrayList<Question> questions = getQuestionsOfForm(form.getId());
         for (int i = 0; i < form.getQuestions().size(); i++) {
             for (int x = 0; x < questions.size(); x++) {
@@ -223,7 +222,6 @@ public class QuestionDaoDbImpl implements QuestionDao {
         try {
             int i = 0;
             while (rs.next()) {
-                System.out.println("NEXT");
                 Question question = new Question();
                 question.setId(rs.getLong("id"));
                 question.setAllowCustom(rs.getString("allowCustom"));

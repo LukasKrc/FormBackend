@@ -47,8 +47,6 @@ public class Form {
                 return "Question: " + i + ", type";
             if (question.getAllowEmpty()== null)
                 return "Question: " + i + ", allow-empty";
-            if (question.getAllowCustom()== null)
-                return "Question: " + i + ", allow-custom";
         }
         return null;
     }

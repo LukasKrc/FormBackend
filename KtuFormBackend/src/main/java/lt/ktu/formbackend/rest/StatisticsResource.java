@@ -22,14 +22,14 @@ import lt.ktu.formbackend.utility.JsonSerializer;
 @Path("/stats")
 public class StatisticsResource {
 
-    private AnswerDaoDbImpl answerDao = DaoFactory.getAnswerDao();
-    private FormDaoDbImpl formDao = DaoFactory.getFormDao();
+    private final AnswerDaoDbImpl answerDao = DaoFactory.getAnswerDao();
+    private final FormDaoDbImpl formDao = DaoFactory.getFormDao();
 
     @GET
     @Path("/{username}")
     public Response getUserFormStats(@PathParam("username") String username) {
         try {
-            ArrayList<FormStats> statArray = new ArrayList();
+            ArrayList<FormStats> statArray;// = new ArrayList();
             statArray = answerDao.getUserFormStats(username);
             return Response.ok(statArray, MediaType.APPLICATION_JSON).build();
         } catch (DaoException e) {

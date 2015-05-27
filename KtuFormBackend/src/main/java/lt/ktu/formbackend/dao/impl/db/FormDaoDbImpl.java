@@ -101,7 +101,6 @@ public class FormDaoDbImpl implements FormDao {
         ArrayList<String> paramList = new ArrayList();
         paramList.add(formName);
         paramList.add(username);
-        System.out.println(formName + username);
         return SqlExecutor.executePreparedStatement(this::getFormUserNameFunction, FORM_GET_USER_NAME_SQL, paramList);
     }
 
@@ -146,7 +145,6 @@ public class FormDaoDbImpl implements FormDao {
                 statement.setString(i++, form.getName());
             }
             statement.setLong(i, form.getId());
-            System.out.println(i);
             if (statement.executeUpdate() > 0) {
                 return true;
             } else {
@@ -192,9 +190,6 @@ public class FormDaoDbImpl implements FormDao {
 
     private ArrayList<Form> searchFormsFunction(PreparedStatement statement, SearchQuery query) {
         ArrayList<Form> forms = new ArrayList();
-//        if (query.getQuery() == null) {
-//            throw new DaoException(Type.ERROR, "Search query is empty.");
-//        }
         try {
             for (int i = 0; i < query.getTags().size() || (query.getTags().size() == 0 && i < 1); i++) {
                 if (query.getQuery() == null || query.getQuery().equals("")) {

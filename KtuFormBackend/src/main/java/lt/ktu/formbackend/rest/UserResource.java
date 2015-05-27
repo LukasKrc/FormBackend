@@ -29,7 +29,7 @@ import org.codehaus.jettison.json.JSONObject;
 @Path("/user")
 public class UserResource {
 
-    private UserDaoDbImpl userDao = DaoFactory.getUserDao();
+    private final UserDaoDbImpl userDao = DaoFactory.getUserDao();
 
     @Context
     HttpServletRequest request;

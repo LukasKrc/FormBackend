@@ -13,7 +13,6 @@ import lt.ktu.formbackend.dao.FormDao;
 import lt.ktu.formbackend.dao.QuestionDao;
 import lt.ktu.formbackend.dao.UserDao;
 import lt.ktu.formbackend.model.Answer;
-import lt.ktu.formbackend.model.AnswerContainer;
 import lt.ktu.formbackend.model.AnswerRelation;
 import lt.ktu.formbackend.model.AnswerStats;
 import lt.ktu.formbackend.model.Form;

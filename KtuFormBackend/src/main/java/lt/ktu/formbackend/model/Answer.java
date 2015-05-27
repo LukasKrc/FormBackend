@@ -30,6 +30,7 @@ public class Answer {
     @JsonProperty("selected")
     private ArrayList<Boolean> multiChoice;
     private int questionNumber;
+    @JsonIgnore
     private int formAnswerId;
     
     //<editor-fold desc="Getters and setters">

@@ -1,9 +1,7 @@
 package lt.ktu.formbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.enterprise.inject.Model;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
