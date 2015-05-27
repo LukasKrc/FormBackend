@@ -40,7 +40,7 @@ public class AnswerResource {
     private UserDaoDbImpl userDao = DaoFactory.getUserDao();
 
     @GET
-    @Path("{username}/{formName}")
+    @Path("/{username}/{formName}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAnswers(@PathParam("username") String username, @PathParam("formName") String formName) {
         try {

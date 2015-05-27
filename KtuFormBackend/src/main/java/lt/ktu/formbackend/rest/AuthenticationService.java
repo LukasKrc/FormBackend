@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class AuthenticationService {
 
-    private UserDao userDao = DaoFactory.getUserDao();
+    private final UserDao userDao = DaoFactory.getUserDao();
 
     public String md5Digest(String text) {
         try {
@@ -26,7 +26,7 @@ public class AuthenticationService {
             md = MessageDigest.getInstance("MD5");
             md.update(text.getBytes());
             byte[] digest = md.digest();
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (byte b : digest) {
                 sb.append(String.format("%02x", b & 0xff));
             }
@@ -59,12 +59,15 @@ public class AuthenticationService {
         String password = tokenizer.nextToken();
         password = this.md5Digest(password);
         System.out.println(password);
-        User user = userDao.getUserUsername(username);
-        if (password.equals(user.getPassword())) {
-            request.setAttribute("username", user.getUsername());
-            return true;
-        } else {
-            return false;
-        }
+	try {
+            User user = userDao.getUserUsername(username);
+            if (user == null) return false;
+            if (password.equals(user.getPassword())) {
+                request.setAttribute("username", user.getUsername());
+                return true;
+            } else {
+                return false;
+            }
+        } catch(Exception e) { return false; }
     }
 }
